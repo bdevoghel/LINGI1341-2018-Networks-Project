@@ -1,12 +1,18 @@
-# Makefile
+#
+# Makefile projet1 - Reseaux Informatiques
+# Octobre 2018
+#
+# Auteurs : Brieuc de Voghel   &   Nicolas van de Walle
+# NOMA    : 59101600           &   27901600
+#
 
 CC = gcc # compilateur utilisé
 CFLAGS = -g -Wall -W # options de compilation
 LDFLAGS = -lcunit # options de l'édition de liens
 LIBRAIRIES = # librairies externes à utiliser (*.a) TODO ?
-SRC = main.c # liste des fichiers sources du projet
+SRC = src/sender.c src/receiver.c # liste des fichiers sources du projet
 OBJ = $(SRC:.c=.o) # liste des fichiers objets
-EXEC = sender reciever # noms des exécutables à générer
+EXEC = sender receiver # noms des exécutables à générer
 
 build: $(EXEC) # cible par default
 
