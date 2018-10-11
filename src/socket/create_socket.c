@@ -8,12 +8,12 @@
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
  */
 
+#include <netinet/in.h> //sockaddr_in6
+#include <sys/types.h> // sockaddr_in6
 // autres #includes TODO
 
-#include <netinet/in.h> /* * sockaddr_in6 */
-#include <sys/types.h> /* sockaddr_in6 */
-
-/* Creates a socket and initialize it
+/**
+ * Creates a socket and initialize it
  * @source_addr: if !NULL, the source address that should be bound to this socket
  * @src_port: if >0, the port on which the socket is listening
  * @dest_addr: if !NULL, the destination address to which the socket should send data
@@ -23,4 +23,4 @@
  */
 int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockaddr_in6 *dest_addr, int dst_port) {
     // TODO
-};
+}
