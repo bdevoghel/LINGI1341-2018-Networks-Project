@@ -27,28 +27,29 @@ int main(int argc, char *argv[]) {
      * Recuperation des arguments
      * TODO
      */
+    int fOption = 0;
     int opt;
-    int nopt = 0;
+    int nOpt = 0;
     while((opt = getopt(argc, argv, "f:")) != -1) { // voir man getopt TODO verifier options
         switch(opt) {
             case 'f' :
-                arg = strtod(optarg, &strdouble);
-                if(optarg == strdouble) {
-                    fprintf(stderr, "%s", "-a optarg is not a number.\n");
-                    return EXIT_FAILURE;
-                }
-                nopt++;
+                fOption = 1;
+                nOpt++;
                 break;
             default : // option inconnue
                 fprintf(stderr, "Unknown argument detected\n");
-                return 1;
+                return EXIT_FAILURE;
         }
     }
-    if(argc - 1 == argc) { // default
-        printf("%i\n", nopt);
+    if(argc - 1 == nOpt) { // default
+        fprintf(stderr, "%i option(s) read\n", nOpt);
     } else {
-        printf("%.*f\n", atoi(argv[argc-1]), nopt);
+        fprintf(stderr, "%i option(s) read\n", argc - 1);
+        // TODO handle other arguments
     }
+
+
+    fprintf(stderr, "fOption : %i\n", fOption);
 
     /* ouverture du fichier */
 

@@ -14,6 +14,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+/**
+ * main function
+ *
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char *argv[]) {
 
     /* recuperation des arguments */
