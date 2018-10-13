@@ -12,17 +12,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <zlib.h> // CRC32
 
 struct __attribute__((__packed__)) pkt {
     ptypes_t type;
     uint8_t tr : 1;
     uint8_t window : 5;
-    uint8_t seqnum : 8;
-    uint16_t length : 16;
-    uint32_t timestamp : 32;
+    uint8_t seqnum ;
+    uint16_t length;
+    uint32_t timestamp;
     char *payload;
-    uint32_t crc1 : 32;
-    uint32_t crc2 : 32;
+    uint32_t crc1;
+    uint32_t crc2;
 };
 
 pkt_t* pkt_new() {
@@ -51,15 +52,9 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
 
     // Lecture du header
     ptypes_t pkt_type = (ptypes_t) ((data[0] & 0xC0) >> 6);
-    if(pkt_type == 0) {
-        return E_TYPE;
-    }
     pkt_set_type(pkt, pkt_type);
 
     uint8_t pkt_tr = (uint8_t) ((data[0] & 0x20) >> 5);
-    if((pkt_type != PTYPE_DATA) && (pkt_get_tr(pkt) != 0)) { // condition sur le camp TR
-        return E_UNCONSISTENT;
-    }
     pkt_set_tr(pkt, pkt_tr);
 
     uint8_t pkt_window = (uint8_t) (data[0] & 0x1F);
@@ -77,33 +72,6 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     uint32_t pkt_crc1 = (uint32_t) ((data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11]);
     pkt_set_crc1(pkt, pkt_crc1);
 
-    // TODO check CRC and coherence
-    /*
-    pkt_status_code code = PKT_OK;
-
-    pkt_set_window(pkt, (const uint8_t) data[0] & 31);
-    pkt_set_seqnum(pkt, (const uint8_t) data[1]);
-
-    uint16_t L = ((data[2] & 255) << 8) | (data[3] & 255) ;
-
-    uint16_t Lp = (4 - (L%4))%4; // longueur du padding
-
-    if (((L + 8 + Lp) > (uint16_t) len) && code != E_NOPAYLOAD){
-        code = E_UNCONSISTENT;
-    }
-    if(code == PKT_OK){
-        code = pkt_set_length(pkt, L);
-    }
-    else{
-        pkt_set_length(pkt, L);
-    }
-    // retourne l'erreur une fois le header forme
-    if(code != PKT_OK) {
-
-        return code;
-    }
-*/
-
     // Lecture du payload
     char payload[pkt_length];
     int i;
@@ -116,20 +84,24 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     uint32_t pkt_crc2 = (uint32_t) ((data[12 + i + 1] << 24) | (data[12 + i + 2] << 16) | (data[12 + i + 3] << 8) | data[12 + i + 4]);
     pkt_set_crc2(pkt, pkt_crc2);
 
-    // TODO check CRC and coherence
-    /*
-    uint32_t a = (uint8_t) data[4+L+Lp];
-    uint32_t b = (uint8_t) data[5+L+Lp];
-    uint32_t c = (uint8_t) data[6+L+Lp];
-    uint32_t d = (uint8_t) data[7+L+Lp];
-    uLong crc = (uLong) (((a&255)<<24)|((b&255)<<16)|((c&255)<<8)|(d&255));
-    uLong crcOld = crc32(0L, Z_NULL, 0);
-    crcOld = crc32(crcOld, (const Bytef*) data, (uint) (4+L+Lp));
-    if(crc != crcOld) {
+    // Validation des CRC et des coherences
+    // TODO valider coherences
+    uLong crc1Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) &data[0], (uInt) sizeof(char)*8);
+    if(pkt_crc1 != crc1Calculated) {
         return E_CRC;
     }
-    pkt_set_crc(pkt, crc);
-     */
+
+    uLong crc2Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) &data[12], (uInt) sizeof(char)*pkt_length);
+    if(pkt_crc2 != crc2Calculated) {
+        return E_CRC;
+    }
+
+    if(pkt_type == 0) {
+        return E_TYPE;
+    }
+    if((pkt_type != PTYPE_DATA) && (pkt_get_tr(pkt) != 0)) { // condition sur le camp TR
+        return E_UNCONSISTENT;
+    }
 
     return PKT_OK;
 }
@@ -165,7 +137,8 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
     buf[6] = (char) ((pkt_timestamp & 0x00F0) >> 8);
     buf[7] = (char) (pkt_timestamp & 0x000F);
 
-    uint32_t pkt_crc1 = pkt_get_crc1(pkt);
+    uint32_t pkt_crc1 = (uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) &buf[0], (uInt) sizeof(char)*8);
+    // uint32_t pkt_crc1 = pkt_get_crc1(pkt);
     buf[8] = (char) ((pkt_crc1 & 0xF000) >> 24);
     buf[9] = (char) ((pkt_crc1 & 0x0F00) >> 16);
     buf[10] = (char) ((pkt_crc1 & 0x00F0) >> 8);
@@ -185,7 +158,8 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
     }
 
     // Ecriture du CRC2 dans le buffer
-    uint32_t pkt_crc2 = pkt_get_crc2(pkt);
+    uint32_t pkt_crc2 = (uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) &buf[12], (uInt) pkt_length);
+    // uint32_t pkt_crc2 = pkt_get_crc2(pkt);
     if(pkt_crc2 != 0) {
         buf[8 + i + 1] = (char) ((pkt_crc2 & 0xF000) >> 24);
         buf[8 + i + 2] = (char) ((pkt_crc2 & 0x0F00) >> 16);
@@ -267,7 +241,7 @@ pkt_status_code pkt_set_window(pkt_t *pkt, const uint8_t window) {
     if(pkt == NULL) {
         return E_UNCONSISTENT;
     }
-    if(window > 31) {
+    if(window > MAX_WINDOW_SIZE) {
         return E_WINDOW;
     }
     pkt->window = window;
@@ -286,7 +260,7 @@ pkt_status_code pkt_set_length(pkt_t *pkt, const uint16_t length) {
     if(pkt == NULL) {
         return E_UNCONSISTENT;
     }
-    if(length > 512) {
+    if(length > MAX_PAYLOAD_SIZE) {
         return E_LENGTH;
     }
     pkt->length = length;
@@ -321,7 +295,7 @@ pkt_status_code pkt_set_payload(pkt_t *pkt, const char *data, const uint16_t len
     if(pkt == NULL) {
         return E_UNCONSISTENT;
     }
-    if(data == NULL || length > 512){
+    if(data == NULL || length > MAX_PAYLOAD_SIZE){
         return E_LENGTH;
     }
     pkt_status_code code = pkt_set_length(pkt, length);
