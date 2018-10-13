@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -25,7 +26,6 @@ int main(int argc, char *argv[]) {
 
     /*
      * Recuperation des arguments
-     * TODO
      */
     int fOption = 0;
     int opt;
