@@ -7,7 +7,7 @@
 #
 
 CC = gcc # compilateur utilisé
-CFLAGS = -g -Wall -W # -Werror -Wshadow -Wextra -lz -lcunit # options de compilation
+CFLAGS = -g -std=c99 -Wall -W -lz -Werror -Wshadow -Wextra -lcunit # options de compilation
 LDFLAGS = -lcunit # options de l'édition de liens
 
 LIBRAIRIES = # librairies externes à utiliser (*.a) TODO ?
@@ -15,7 +15,7 @@ LIBRAIRIES = # librairies externes à utiliser (*.a) TODO ?
 # liste des fichiers sources du projet
 SRC_SOCKET = src/socket/create_socket.c src/socket/real_address.c src/socket/wait_for_client.c
 SRC_PACKET = src/packet/packet.c
-SRC =  src/sender.c src/receiver.c $(SRC_PACKET) $(SRC_SOCKET)
+SRC = src/sender.c $(SRC_PACKET) # $(SRC_SOCKET)  src/receiver.c
 
 OBJ = $(SRC:.c=.o) # liste des fichiers objets
 
@@ -37,17 +37,16 @@ tests/test: tests/*.o
 
 tests/*.o: tests/*.c
 	@echo 'Building tests'
-	@$(CC) -c -o tests/test.o tests/*.c $(CFLAGS)
+	@$(CC) -c -o tests/test.o tests/*.c $(CFLAGS) $(LDFLAGS)
 
 $(EXEC): $(OBJ) $(LIBRAIRIES)
 	@echo 'Making executable'
-	@$(CC) -o $@ $^ $(LDFLAGS) $(CFLAGS) $(LIBRAIRIES)
+	@$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(LIBRAIRIES)
 
-# pour main (et tout autre .c à construire à partir d'un .o)
-%.o: %.c
-	@echo 'Building main'
-	@$(CC) -o $@ -c $< $(CFLAGS)
-
+# pour tout .o à construire à partir d'un .c
+.o: .c
+	@echo 'Building .o files'
+	@$(CC) -o $@ -c $(CFLAGS)
 
 # dépendances qui seront systématiquement reconstruites
 .PHONY: build clean rebuild tests
