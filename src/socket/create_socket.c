@@ -8,9 +8,9 @@
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
  */
 
-#include <netinet/in.h> //sockaddr_in6
-#include <sys/types.h> // sockaddr_in6
-// autres #includes TODO
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 /**
  * Creates a socket and initialize it
