@@ -30,11 +30,8 @@
 
 
 const char * real_address(const char *address, struct sockaddr_in6 *rval) {
-    if (address == NULL) {
-        return "NULL";
-    }
-    if (rval == NULL) {
-        return "NULL";
+    if (address == NULL || rval == NULL) {
+        return "Ooops";
     }
 
     struct addrinfo addressInfo;
@@ -50,10 +47,10 @@ const char * real_address(const char *address, struct sockaddr_in6 *rval) {
     struct addrinfo *tmp;
     int addrinfo = getaddrinfo(address, NULL, &addressInfo, &tmp);
     if (addrinfo != 0) {
-        return "NULL";
+        return "Ooops";
     }
 
-    memcpy(rval, (struct sockaddr_in6*) tmp->ai_addr, sizeof(tmp->ai_addr));
+    memcpy(rval, (struct sockaddr_in6*)(tmp->ai_addr), sizeof(tmp->ai_addr));
 
     freeaddrinfo(tmp);
 

@@ -25,9 +25,9 @@
  * @return: a file descriptor number representing the socket,
  *         or -1 in case of error (explanation will be printed on stderr)
  */
-int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockaddr_in6 *dst_addr, int dst_port) {
+int create_socket(struct sockaddr_in6 *src_addr, int src_port, struct sockaddr_in6 *dst_addr, int dst_port) {
 
-    if (source_addr == NULL || src_port < 0 || dst_addr == NULL || dst_port < 0) {
+    if (src_addr == NULL || src_port < 0 || dst_addr == NULL || dst_port < 0) {
         return -1;
     }
 
@@ -36,31 +36,17 @@ int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockadd
         return -1;
     }
 
-    struct sockaddr_in6 *srcAddress = malloc(sizeof(struct sockaddr_in6));
-    if (srcAddress == NULL) {
-        return -1;
-    }
-    memcpy(source_addr, srcAddress, sizeof(struct sockaddr_in6));
-    srcAddress->sin6_port = htons(src_port);
-    if (bind(newSocket, (struct sockaddr *)srcAddress, sizeof(struct sockaddr_in6)) == -1) {
-        free(srcAddress);
+    // Server (source) socket
+    src_addr->sin6_port = htons(src_port);
+    if (bind(newSocket, (struct sockaddr *)src_addr, sizeof(struct sockaddr_in6)) == -1) {
         return -1;
     }
 
-
-    struct sockaddr_in6 *dstAddress = malloc(sizeof(struct sockaddr_in6));
-    if (dstAddress == NULL) {
-        return -1;
-    }
-    memcpy(dst_addr, dstAddress, sizeof(struct sockaddr_in6));
-    dstAddress->sin6_port = htons(dst_port);
-    if (connect(newSocket, (struct sockaddr *)dstAddress, sizeof(struct sockaddr_in6)) == -1) {
-        free(srcAddress);
-        free(dstAddress);
+    // Client (destination) socket
+    //dst_addr->sin6_port = htons(dst_port);
+    if (connect(newSocket, (struct sockaddr *)dst_addr, sizeof(struct sockaddr_in6)) == -1) {
         return -1;
     }
 
-    free(srcAddress);
-    free(dstAddress);
     return newSocket;
 }
