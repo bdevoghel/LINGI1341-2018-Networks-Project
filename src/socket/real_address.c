@@ -7,12 +7,16 @@
  *
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
  * Réalisé avec l'aide des sites suivants : https://github.com/Donaschmi/LINGI1341/blob/master/Inginious/Envoyer_et_recevoir_des_donn%C3%A9es/real_address.c
-
+ *                                          https://stackoverflow.com/questions/20411223/warning-passing-argument-2-of-getsockname-from-incompatible-pointer-type
  */
 
-#include <netinet/in.h> // sockaddr_in6
-#include <sys/types.h> // sockaddr_in6
-// autres #includes TODO
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * Resolve the resource name to an usable IPv6 address
@@ -27,29 +31,29 @@
 
 const char * real_address(const char *address, struct sockaddr_in6 *rval) {
     if (address == NULL) {
-        return "Parameter \"address\" should not be NULL";
+        return "NULL";
     }
     if (rval == NULL) {
-        return "Parameter \"rval\" should not be NULL";
+        return "NULL";
     }
 
     struct addrinfo addressInfo;
 
     memset(&addressInfo, 0, sizeof(struct addrinfo));
 
-    addressInfo->ai_family = AF_INET6;
-    addressInfo->ai_socktype = SOCK_DGRAM;
-    addressInfo->ai_protocol = IPPROTO_UDP;
-    addressInfo->ai_flags = 0;
+    addressInfo.ai_family = AF_INET6;
+    addressInfo.ai_socktype = SOCK_DGRAM;
+    addressInfo.ai_protocol = IPPROTO_UDP;
+    addressInfo.ai_flags = 0;
 
 
     struct addrinfo *tmp;
     int addrinfo = getaddrinfo(address, NULL, &addressInfo, &tmp);
     if (addrinfo != 0) {
-        return "getaddrinfo returned a non NULL value";
+        return "NULL";
     }
 
-    memcpy(rval, (struct sockaddr_in6*) tmp->ai_addr, sizeof(struct sockaddr_in6*));
+    memcpy(rval, (struct sockaddr_in6*) tmp->ai_addr, sizeof(tmp->ai_addr));
 
     freeaddrinfo(tmp);
 

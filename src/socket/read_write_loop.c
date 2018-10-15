@@ -6,9 +6,18 @@
  * NOMA    : 59101600           &   27901600
  *
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
+ * Réalisé avec l'aide des sites suivants : https://github.com/Donaschmi/LINGI1341/blob/master/Inginious/Envoyer_et_recevoir_des_donn%C3%A9es/read_write_loop.c
  */
 
-// autres #includes TODO
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 /**
  * Loop reading a socket and printing to stdout,
@@ -16,6 +25,53 @@
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-void read_write_loop(const int sfd) {
-    // TODO
+void read_write_loop(int sfd) {
+    int getOut = 0;
+
+    char stdInBuffer[1024];
+    char sfdBuffer[1024];
+
+    fd_set fdSet;
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 3;
+
+    //Unuseful but inginious needs to go through the warnings
+    int written;
+
+    while (!getOut) {
+        // Reset everything for new iteration of the loop
+        memset(stdInBuffer, 0, 1024);
+        memset(sfdBuffer, 0, 1024);
+
+        FD_ZERO(&fdSet);
+        FD_SET(0, &fdSet);
+        FD_SET(sfd, &fdSet);
+
+        select(sfd + 1, &fdSet, NULL, NULL, &timeout);
+
+        if (FD_ISSET(0, &fdSet)) {
+            if (read(0, stdInBuffer, 1024) != -1) {
+                written = write(sfd, stdInBuffer, 1024);
+                if(written == -1) {
+                    perror("Failed to write into the sfd file");
+                }
+            }
+        }
+
+        if (FD_ISSET(sfd, &fdSet)) {
+            if (read(sfd, sfdBuffer, 1024) != -1) {
+                written = write(1, sfdBuffer, 1024);
+                if(written == -1) {
+                    perror("Failed to write on stdout");
+                }
+            }
+        }
+
+        if (feof(stdin) != 0) {
+            getOut = 1;
+        }
+
+    }
 }
