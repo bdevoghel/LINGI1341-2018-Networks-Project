@@ -6,9 +6,21 @@
  * NOMA    : 59101600           &   27901600
  *
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
+ * Réalisé avec l'aide des sites suivants : https://github.com/Donaschmi/LINGI1341/blob/master/Inginious/Envoyer_et_recevoir_des_donn%C3%A9es/wait_for_client.c
  */
 
-// autres #includes TODO
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 /**
  * Block the caller until a message is received on sfd,
@@ -19,5 +31,24 @@
  * and could be repeated several times blocking only at the first call.
  */
 int wait_for_client(int sfd) {
-    // TODO
+    if (sfd < 0) {
+        return -1;
+    }
+
+    int bufferLength = 1024; // TODO readapt for project, should be 512 I think
+
+    char buffer[bufferLength];
+    struct sockaddr_in6 clientAddress;
+    socklen_t addressSize = sizeof(struct sockaddr_in6);
+
+    memset(&clientAddress, 0, sizeof(struct sockaddr_in6));
+    if(recvfrom(sfd, buffer, bufferLength, MSG_PEEK, (struct sockaddr *)&clientAddress, &addressSize) == -1) {
+        return -1;
+    }
+
+    if (connect(sfd, (struct sockaddr *)&clientAddress, addressSize) == -1) {
+        return -1;
+    }
+
+    return 0;
 }

@@ -6,6 +6,7 @@
  * NOMA    : 59101600           &   27901600
  *
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
+ * Réalisé avec l'aide des sites suivants : https://github.com/Donaschmi/LINGI1341/blob/master/Inginious/Envoyer_et_recevoir_des_donn%C3%A9es/create_socket.c
  */
 
 #include <sys/socket.h>
@@ -41,7 +42,7 @@ int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockadd
     }
     memcpy(source_addr, srcAddress, sizeof(struct sockaddr_in6));
     srcAddress->sin6_port = htons(src_port);
-    if (bind(newSocket, (struct sockaddr *)srcAddress, sizeof(*srcAddress)) == -1) {
+    if (bind(newSocket, (struct sockaddr *)srcAddress, sizeof(struct sockaddr_in6)) == -1) {
         free(srcAddress);
         return -1;
     }
@@ -53,7 +54,7 @@ int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockadd
     }
     memcpy(dst_addr, dstAddress, sizeof(struct sockaddr_in6));
     dstAddress->sin6_port = htons(dst_port);
-    if (connect(newSocket, (struct sockaddr *)dstAddress, sizeof(*dstAddress)) == -1) {
+    if (connect(newSocket, (struct sockaddr *)dstAddress, sizeof(struct sockaddr_in6)) == -1) {
         free(srcAddress);
         free(dstAddress);
         return -1;
