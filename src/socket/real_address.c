@@ -10,9 +10,12 @@
 
  */
 
-#include <netinet/in.h> // sockaddr_in6
-#include <sys/types.h> // sockaddr_in6
-// autres #includes TODO
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * Resolve the resource name to an usable IPv6 address
