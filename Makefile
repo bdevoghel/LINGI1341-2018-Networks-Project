@@ -25,6 +25,9 @@ EXEC = sender receiver # noms des exécutables à générer
 all: $(EXEC)
 build: $(EXEC)
 
+cppcheck: # TODO ne fonctionne pas comme ca ... mais comment alors ?
+	./cppcheck --enable=all --check-config --suppress=missingIncludeSystem $(SRC)
+
 tests:
 	@echo 'Testing (rebuilding beforehand)'
 	@make clean

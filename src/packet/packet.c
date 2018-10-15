@@ -49,36 +49,20 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
      * Lecture du header
      */
     memcpy(pkt, data+0, sizeof(uint8_t));
-    //ptypes_t pkt_type = (ptypes_t) ((data[0] & 0xC0) >> 6);
-    //pkt_set_type(pkt, pkt_type);
-
-    //uint8_t pkt_tr = (uint8_t) ((data[0] & 0x20) >> 5);
-    //pkt_set_tr(pkt, pkt_tr);
-
-    //uint8_t pkt_window = (uint8_t) (data[0] & 0x1F);
-    //pkt_set_window(pkt, pkt_window);
 
     memcpy(&(pkt->seqnum), data+1, sizeof(uint8_t));
-    //uint8_t pkt_seqnum = (uint8_t) data[1];
-    //pkt_set_seqnum(pkt, pkt_seqnum);
 
     uint8_t pktn_length;
     memcpy(&pktn_length, data+2, sizeof(uint16_t));
     pkt_set_length(pkt, ntohs(pktn_length));
-    //uint16_t pkt_length = ntohs((uint16_t) ((data[2] << 8) | data[3]));
-    //pkt_set_length(pkt, pkt_length);
 
     uint32_t pktn_timestamp;
     memcpy(&pktn_timestamp, data+4, sizeof(uint32_t));
     pkt_set_timestamp(pkt, ntohl(pktn_length));
-    //uint32_t pkt_timestamp = (uint32_t) ((data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7]);
-    //pkt_set_timestamp(pkt, pkt_timestamp);
 
     uint32_t pktn_crc1;
     memcpy(&pktn_crc1, data+8, sizeof(uint32_t));
     pkt_set_crc1(pkt, ntohl(pktn_crc1));
-    //uint32_t pkt_crc1 = (uint32_t) ((data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11]);
-    //pkt_set_crc1(pkt, pkt_crc1);
 
     /*
      * Lecture du payload
@@ -96,11 +80,10 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     uint32_t pktn_crc2;
     memcpy(&pktn_crc2, data+12+i, sizeof(uint32_t));
     pkt_set_crc2(pkt, ntohl(pktn_crc2));
-    //uint32_t pkt_crc2 = (uint32_t) ((data[12 + i + 1] << 24) | (data[12 + i + 2] << 16) | (data[12 + i + 3] << 8) | data[12 + i + 4]);
-    //pkt_set_crc2(pkt, pkt_crc2);
 
-    // Validation des CRC et des coherences
-    // TODO valider coherences
+    /*
+     * Validation des CRC et des TODO coherences
+     */
     uLong crc1Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+0, (uInt) sizeof(char)*8);
     if(pkt_get_crc1(pkt) != crc1Calculated) {
         return E_CRC;
@@ -114,7 +97,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     if(pkt_get_type(pkt) == 0) {
         return E_TYPE;
     }
-    if((pkt_get_type(pkt) != PTYPE_DATA) && (pkt_get_tr(pkt) != 0)) { // condition sur le camp TR
+    if((pkt_get_type(pkt) != PTYPE_DATA) && (pkt_get_tr(pkt) != 0)) { // condition sur le champ TR
         return E_UNCONSISTENT;
     }
 
@@ -122,13 +105,10 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
 }
 
 pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
-    if(pkt == NULL || ((pkt_get_type(pkt) != PTYPE_DATA) && (pkt_get_tr(pkt) != 0)) // condition sur le camp TR
-        // FAUX (voir enonce) : || pkt_get_length(pkt) > pkt_get_tr(pkt) // tronque mais avec payload
-            ) {
+    if(pkt == NULL || ((pkt_get_type(pkt) != PTYPE_DATA) && (pkt_get_tr(pkt) != 0))) { // condition sur le champ TR
         return E_UNCONSISTENT;
     }
     if(buf == NULL) {
-        fprintf(stderr, "E_NOMEM 1\n");
         return E_NOMEM;
     }
     if(len == NULL) {
@@ -144,34 +124,17 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
      * Ecriture du header dans le buffer
      */
     memcpy(buf+0, pkt, sizeof(uint8_t));
-    // memcopy fait l'equivalent du suivant, mais correctement :
-    // buf[0] = (char) (((uint8_t) pkt_get_type(pkt)) << 6) | ((pkt_get_tr(pkt)) << 5) | pkt_get_window(pkt);
 
     memcpy(buf+1, &(pkt->seqnum), sizeof(uint8_t));
-    // memcopy fait l'equivalent du suivant, mais correctement :
-    // buf[1] = (char) pkt_get_seqnum(pkt);
 
     memcpy(buf+2, &pktn_length, sizeof(uint8_t));
-    // memcopy fait l'equivalent du suivant, mais correctement :
-    // buf[2] = (char) ((pkt_length & 0xF0) >> 8);
-    // buf[3] = (char) (pkt_length & 0x0F);
 
     uint32_t pktn_timestamp = htonl(pkt_get_timestamp(pkt));
     memcpy(buf+4, &pktn_timestamp, sizeof(uint32_t));
-    // memcopy fait l'equivalent du suivant, mais correctement :
-    // buf[4] = (char) ((pkt_timestamp & 0xF000) >> 24);
-    // buf[5] = (char) ((pkt_timestamp & 0x0F00) >> 16);
-    // buf[6] = (char) ((pkt_timestamp & 0x00F0) >> 8);
-    // buf[7] = (char) (pkt_timestamp & 0x000F);
 
     uint32_t pktn_crc1 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) &buf[0], (uInt) sizeof(char)*8));
     //pkt_set_crc1(pkt, ntohl(pktn_crc1));
     memcpy(buf+8, &pktn_crc1, sizeof(uint32_t));
-    // memcopy fait l'equivalent du suivant, mais correctement :
-    // buf[8] = (char) ((pkt_crc1 & 0xF000) >> 24);
-    // buf[9] = (char) ((pkt_crc1 & 0x0F00) >> 16);
-    // buf[10] = (char) ((pkt_crc1 & 0x00F0) >> 8);
-    // buf[11] = (char) (pkt_crc1 & 0x000F);
 
     int charWritten = 3 * sizeof(uint32_t);
 
@@ -195,11 +158,6 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
     //pkt_set_crc2(pkt, ntohl(pktn_crc2));
     if(pktn_crc2 != 0) {
         memcpy(buf+charWritten, &pktn_crc2, sizeof(uint32_t));
-        // memcopy fait l'equivalent du suivant, mais correctement :
-        // buf[8 + i + 1] = (char) ((pkt_crc2 & 0xF000) >> 24);
-        // buf[8 + i + 2] = (char) ((pkt_crc2 & 0x0F00) >> 16);
-        // buf[8 + i + 3] = (char) ((pkt_crc2 & 0x00F0) >> 8);
-        // buf[8 + i + 4] = (char) (pkt_crc2 & 0x000F);
         charWritten += sizeof(uint32_t);
     } else {
         // TODO what if crc2 == NULL
