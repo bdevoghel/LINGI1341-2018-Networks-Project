@@ -13,7 +13,6 @@ LDFLAGS = -lcunit # options de l'édition de liens
 LIBRAIRIES = # librairies externes à utiliser (*.a) TODO ?
 
 # liste des fichiers sources du projet
-SRC_SOCKET = src/socket/create_socket.c src/socket/real_address.c src/socket/wait_for_client.c
 SRC_PACKET = src/packet/packet.c
 SRC = src/sender.c $(SRC_PACKET) # $(SRC_SOCKET)  src/receiver.c
 
@@ -22,7 +21,7 @@ OBJ = $(SRC:.c=.o) # liste des fichiers objets
 EXEC = sender receiver # noms des exécutables à générer
 
 # cible par default
-all: $(EXEC)
+all: clean $(EXEC)
 build: $(EXEC)
 
 cppcheck: # TODO ne fonctionne pas comme ca ... mais comment alors ?
@@ -42,7 +41,7 @@ tests/*.o: tests/*.c
 	@echo 'Building tests'
 	@$(CC) -c -o tests/test.o tests/*.c $(CFLAGS) $(LDFLAGS)
 
-$(EXEC): $(OBJ) $(LIBRAIRIES)
+$(EXEC): create_socket $(OBJ) $(LIBRAIRIES)
 	@echo 'Making executable'
 	@$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(LIBRAIRIES)
 
@@ -51,17 +50,18 @@ $(EXEC): $(OBJ) $(LIBRAIRIES)
 	@echo 'Building .o files'
 	@$(CC) -o $@ -c $(CFLAGS)
 
+create_socket:
+	@echo 'Building socket'
+	@cd src/socket && $(MAKE)
+
 # dépendances qui seront systématiquement reconstruites
 .PHONY: build clean rebuild tests
 
 # permet de supprimer tous les fichiers intermédiaires
 clean:
 	@echo 'Cleaning previously made files'
-	@rm -vf $(EXEC) tests/test tests/*.o src/*.o src/packet/*.o src/socket/*.o *.o $(LIBRAIRIES)
-
-# supprime tout et reconstruit le projet
-rebuild: clean build
-
+	@rm -vf $(EXEC) tests/test tests/*.o src/*.o src/packet/*.o *.o $(LIBRAIRIES) #
+	@cd src/socket && make clean
 
 ###########################################################################################################
 # inspiration temporaire :
