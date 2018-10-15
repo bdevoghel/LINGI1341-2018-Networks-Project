@@ -38,12 +38,14 @@ void pkt_del(pkt_t *pkt) {
 }
 
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
-    if(data == NULL) {
+    if(data == NULL || len == 0) {
         return E_UNCONSISTENT;
     }
     if(len < 12) {
         return E_NOHEADER;
     }
+
+    pkt_status_code statusCode;
 
     /*
      * Lecture du header
@@ -54,42 +56,87 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
 
     uint8_t pktn_length;
     memcpy(&pktn_length, data+2, sizeof(uint16_t));
-    pkt_set_length(pkt, ntohs(pktn_length));
+    statusCode = pkt_set_length(pkt, ntohs(pktn_length));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
 
     uint32_t pktn_timestamp;
     memcpy(&pktn_timestamp, data+4, sizeof(uint32_t));
-    pkt_set_timestamp(pkt, ntohl(pktn_length));
+    statusCode = pkt_set_timestamp(pkt, ntohl(pktn_length));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
 
     uint32_t pktn_crc1;
     memcpy(&pktn_crc1, data+8, sizeof(uint32_t));
-    pkt_set_crc1(pkt, ntohl(pktn_crc1));
+    statusCode = pkt_set_crc1(pkt, ntohl(pktn_crc1));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
 
     /*
      * Lecture du payload
      */
     char payload[pkt_get_length(pkt)];
-    int i;
-    for(i=0 ; i<pkt_get_length(pkt) ; i++) {
-        payload[i] = data[12 + i];
+    memcpy(payload, data+12, pkt_get_length(pkt));
+    statusCode = pkt_set_payload(pkt, payload, pkt_get_length(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
     }
-    pkt_set_payload(pkt, payload, pkt_get_length(pkt));
 
     /*
      * Lecture du CRC2
      */
     uint32_t pktn_crc2;
-    memcpy(&pktn_crc2, data+12+i, sizeof(uint32_t));
-    pkt_set_crc2(pkt, ntohl(pktn_crc2));
+    memcpy(&pktn_crc2, data+12+pkt_get_length(pkt), sizeof(uint32_t));
+    statusCode = pkt_set_crc2(pkt, ntohl(pktn_crc2));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
 
     /*
      * Validation des CRC et des TODO coherences
      */
-    uLong crc1Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+0, (uInt) sizeof(char)*8);
+    statusCode = pkt_set_type(pkt, pkt_get_type(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_tr(pkt, pkt_get_tr(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_window(pkt, pkt_get_window(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_seqnum(pkt, pkt_get_seqnum(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_length(pkt, pkt_get_length(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_timestamp(pkt, pkt_get_timestamp(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_crc1(pkt, pkt_get_crc1(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    statusCode = pkt_set_crc2(pkt, pkt_get_crc2(pkt));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+
+    uint32_t crc1Calculated = crc32(crc32(0, Z_NULL, 0), (Bytef *) data+0, (uInt) sizeof(char)*8);
     if(pkt_get_crc1(pkt) != crc1Calculated) {
         return E_CRC;
     }
 
-    uLong crc2Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+12, (uInt) sizeof(char)*pkt_get_length(pkt));
+    uint32_t crc2Calculated = crc32(crc32(0, Z_NULL, 0), (Bytef *) data+12, (uInt) sizeof(char)*pkt_get_length(pkt));
     if(pkt_get_crc2(pkt) != crc2Calculated) {
         return E_CRC;
     }
@@ -132,7 +179,7 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
     uint32_t pktn_timestamp = htonl(pkt_get_timestamp(pkt));
     memcpy(buf+4, &pktn_timestamp, sizeof(uint32_t));
 
-    uint32_t pktn_crc1 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) &buf[0], (uInt) sizeof(char)*8));
+    uint32_t pktn_crc1 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+0, (uInt) sizeof(char)*8));
     //pkt_set_crc1(pkt, ntohl(pktn_crc1));
     memcpy(buf+8, &pktn_crc1, sizeof(uint32_t));
 
@@ -147,6 +194,7 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
             buf[charWritten] = pkt_get_payload(pkt)[i];
             charWritten++;
         }
+        //memcpy(buf+charWritten, pkt->payload, pkt_get_length(pkt));
     } else {
         // TODO what if payload == NULL
     }
@@ -154,7 +202,7 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
     /*
      * Ecriture du CRC2 dans le buffer
      */
-    uint32_t pktn_crc2 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) &buf[12], (uInt) pkt_get_length(pkt)));
+    uint32_t pktn_crc2 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+12, (uInt) pkt_get_length(pkt)));
     //pkt_set_crc2(pkt, ntohl(pktn_crc2));
     if(pktn_crc2 != 0) {
         memcpy(buf+charWritten, &pktn_crc2, sizeof(uint32_t));
@@ -308,6 +356,7 @@ pkt_status_code pkt_set_payload(pkt_t *pkt, const char *data, const uint16_t len
     for(i=0 ; i<length ; i++) {
         pkt->payload[i] = data[i];
     }
+    //memcpy(pkt->payload, data, pkt_get_length(pkt));
 
     return PKT_OK;
 }
