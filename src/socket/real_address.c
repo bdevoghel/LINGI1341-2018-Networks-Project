@@ -10,6 +10,7 @@
  *                                          https://stackoverflow.com/questions/20411223/warning-passing-argument-2-of-getsockname-from-incompatible-pointer-type
  */
 
+#include "real_address.h"
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -28,31 +29,32 @@
  *           so do not use malloc!)
  */
 
-
 const char * real_address(const char *address, struct sockaddr_in6 *rval) {
     if (address == NULL || rval == NULL) {
+        perror("Real_address, NULL NULL");
         return "Ooops";
     }
 
-    struct addrinfo addressInfo;
+    struct addrinfo hints;
 
-    memset(&addressInfo, 0, sizeof(struct addrinfo));
+    memset(&hints, 0, sizeof(hints));
 
-    addressInfo.ai_family = AF_INET6;
-    addressInfo.ai_socktype = SOCK_DGRAM;
-    addressInfo.ai_protocol = IPPROTO_UDP;
-    addressInfo.ai_flags = 0;
+    hints.ai_family = AF_INET6;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+    hints.ai_flags = 0;
 
 
-    struct addrinfo *tmp;
-    int addrinfo = getaddrinfo(address, NULL, &addressInfo, &tmp);
-    if (addrinfo != 0) {
-        return "Ooops";
+    struct addrinfo *res;
+    int info = getaddrinfo(address, NULL, &hints, &res);
+    if (info != 0) {
+        perror("Real_address, getaddrinfo : ");
+        return gai_strerror(info);
     }
 
-    memcpy(rval, (struct sockaddr_in6*)(tmp->ai_addr), sizeof(tmp->ai_addr));
-
-    freeaddrinfo(tmp);
+    struct sockaddr_in6 *result = (struct sockaddr_in6 *)(res->ai_addr);
+    *rval = *result;
+    freeaddrinfo(res);
 
     return NULL;
 
