@@ -16,8 +16,6 @@
 #include <zlib.h> // CRC32
 #include <arpa/inet.h> // htons / ntohs
 
-// TODO tr to 0 when calculating CRC
-
 struct __attribute__((__packed__)) pkt {
     uint8_t window : 5;
     uint8_t tr : 1;
@@ -54,12 +52,12 @@ int main(int argc, char* argv[]) {
     pkt_set_window(pkt, 31);
     pkt_set_seqnum(pkt, 255);
     //pkt_set_length(pkt, strlen("zzabcdefzz")); // done in set_payload
-    pkt_set_timestamp(pkt, (uint32_t) 13496235);
-    uint32_t crc1 = crc32(crc32(0L, Z_NULL, 0), (const Bytef *) pkt+0, 8);
-    pkt_set_crc1(pkt, crc1);
+    pkt_set_timestamp(pkt, (uint32_t) 4294967294);
+    //uint32_t crc1 = crc32(crc32(0L, Z_NULL, 0), (const Bytef *) pkt+0, 8);
+    //pkt_set_crc1(pkt, crc1);
     pkt_set_payload(pkt, "zzabcdefzz", strlen("zzabcdefzz")+1);
-    uint32_t crc2 = crc32(crc32(0L, Z_NULL, 0), (const Bytef *) pkt+12, pkt_get_length(pkt));
-    pkt_set_crc2(pkt, crc2);
+    //uint32_t crc2 = crc32(crc32(0L, Z_NULL, 0), (const Bytef *) pkt+12, pkt_get_length(pkt));
+    //pkt_set_crc2(pkt, crc2);
 
     size_t len = 512;
     char *buf = malloc(len);
@@ -113,9 +111,9 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
         return statusCode;
     }
 
-    uint32_t pktn_timestamp;
-    memcpy(&pktn_timestamp, data+4, sizeof(uint32_t));
-    statusCode = pkt_set_timestamp(pkt, ntohl(pktn_timestamp));
+    uint32_t pkt_timestamp;
+    memcpy(&pkt_timestamp, data+4, sizeof(uint32_t));
+    statusCode = pkt_set_timestamp(pkt, pkt_timestamp);
     if(statusCode != PKT_OK) {
         return statusCode;
     }
@@ -141,14 +139,14 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
      * Lecture du CRC2
      */
     uint32_t pktn_crc2;
-    memcpy(&pktn_crc2, data+12+pkt_get_length(pkt)+1, sizeof(uint32_t));
+    memcpy(&pktn_crc2, data+12+pkt_get_length(pkt), sizeof(uint32_t));
     statusCode = pkt_set_crc2(pkt, ntohl(pktn_crc2));
     if(statusCode != PKT_OK) {
         return statusCode;
     }
 
     /*
-     * Validation des CRC et des TODO coherences
+     * Validation des CRC et des coherences
      */
     statusCode = pkt_set_type(pkt, pkt_get_type(pkt));
     if(statusCode != PKT_OK) {
@@ -183,12 +181,21 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
         return statusCode;
     }
 
-    uint32_t crc1Calculated = crc32(crc32(0, Z_NULL, 0), (Bytef *) data+0, (uInt) sizeof(char)*8);
+    uint8_t trBeforeCRC1 = pkt_get_tr(pkt);
+    statusCode = pkt_set_tr(pkt, 0);
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
+    uint32_t crc1Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+0, (uInt) sizeof(char)*8);
     if(pkt_get_crc1(pkt) != crc1Calculated) {
         return E_CRC;
     }
+    statusCode = pkt_set_tr(pkt, trBeforeCRC1);
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
 
-    uint32_t crc2Calculated = crc32(crc32(0, Z_NULL, 0), (Bytef *) data+12, (uInt) sizeof(char)*pkt_get_length(pkt));
+    uint32_t crc2Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+12, (uInt) sizeof(char)*pkt_get_length(pkt));
     if(pkt_get_crc2(pkt) != crc2Calculated) {
         return E_CRC;
     }
@@ -228,39 +235,47 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
 
     memcpy(buf+2, &pktn_length, sizeof(uint16_t));
 
-    uint32_t pktn_timestamp = htonl(pkt_get_timestamp(pkt));
-    memcpy(buf+4, &pktn_timestamp, sizeof(uint32_t));
+    uint32_t pkt_timestamp = pkt_get_timestamp(pkt);
+    memcpy(buf+4, &pkt_timestamp, sizeof(uint32_t));
 
-    uint32_t pktn_crc1 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+0, (uInt) sizeof(char)*8));
-    //pkt_set_crc1(pkt, ntohl(pktn_crc1));
+    // calculate CRC1 with tr set to 0 !?
+    uint32_t pktn_crc1 = htonl(crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+0, (uInt) sizeof(char)*8));
+    //uint32_t pktn_crc1 = htonl(pkt_get_crc1(pkt));
     memcpy(buf+8, &pktn_crc1, sizeof(uint32_t));
 
     int charWritten = 3 * sizeof(uint32_t);
 
+    if(pkt_get_tr(pkt)) {
+        if(pkt_get_length(pkt) != 0) {
+            return E_UNCONSISTENT;
+        }
+        *len = (size_t) charWritten; // indiquer le nombre de chars ecrits
+        return PKT_OK;
+    }
+
     /*
      * Ecriture du payload dans le buffer
      */
-    if(pkt_get_payload(pkt) != NULL) {
+    if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0) {
         memcpy(buf+12, pkt->payload, pkt_get_length(pkt));
     } else {
-        // TODO what if payload == NULL
+        return E_UNCONSISTENT;
     }
     charWritten += pkt_get_length(pkt);
 
     /*
      * Ecriture du CRC2 dans le buffer
      */
-    uint32_t pktn_crc2 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+12, (uInt) pkt_get_length(pkt)));
-    //pkt_set_crc2(pkt, ntohl(pktn_crc2));
-    if(pktn_crc2 != 0) {
+    uint32_t pktn_crc2 = htonl(crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+12, (uInt) pkt_get_length(pkt)));
+    //uint32_t pktn_crc2 = htonl(pkt_get_crc2(pkt));
+    if(pktn_crc2 != 0 && pkt_get_tr(pkt) == 0) {
         memcpy(buf+charWritten, &pktn_crc2, sizeof(uint32_t));
         charWritten += sizeof(uint32_t);
     } else {
-        // TODO what if crc2 == NULL
+        return E_UNCONSISTENT;
     }
 
-    // indiquer le nombre de chars ecrits
-    *len = (size_t) charWritten;
+    *len = (size_t) charWritten; // indiquer le nombre de chars ecrits
 
     fprintf(stderr, "HEX ENCODE : " );
     int i;
