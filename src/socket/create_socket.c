@@ -7,13 +7,14 @@
  *
  * Contenu repris et complete de l'exercice preparatoire au projet : https://inginious.info.ucl.ac.be/course/LINGI1341/envoyer-et-recevoir-des-donnees
  * Réalisé avec l'aide des sites suivants : https://github.com/Donaschmi/LINGI1341/blob/master/Inginious/Envoyer_et_recevoir_des_donn%C3%A9es/create_socket.c
+ * (Inspiration forte due à une nette incompréhension du non fonctionnement)
  */
 
-#include <sys/socket.h>
+#include "create_socket.h"
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <sys/socket.h>
 #include <string.h>
 
 /**
@@ -25,42 +26,32 @@
  * @return: a file descriptor number representing the socket,
  *         or -1 in case of error (explanation will be printed on stderr)
  */
-int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockaddr_in6 *dst_addr, int dst_port) {
-
-    if (source_addr == NULL || src_port < 0 || dst_addr == NULL || dst_port < 0) {
-        return -1;
-    }
+int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockaddr_in6 *dest_addr, int dst_port) {
 
     int newSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     if (newSocket == -1) {
+        fprintf(stderr,"Create socket, newSocket");
         return -1;
     }
 
-    struct sockaddr_in6 *srcAddress = malloc(sizeof(struct sockaddr_in6));
-    if (srcAddress == NULL) {
-        return -1;
-    }
-    memcpy(source_addr, srcAddress, sizeof(struct sockaddr_in6));
-    srcAddress->sin6_port = htons(src_port);
-    if (bind(newSocket, (struct sockaddr *)srcAddress, sizeof(struct sockaddr_in6)) == -1) {
-        free(srcAddress);
-        return -1;
+    // Server (source) socket
+    if (source_addr != NULL && src_port > 0) {
+
+        source_addr->sin6_port = htons(src_port);
+        if (bind(newSocket, (struct sockaddr *)source_addr, sizeof(struct sockaddr_in6)) != 0) {
+            perror("Create socket, bind");
+            return -1;
+        }
     }
 
-
-    struct sockaddr_in6 *dstAddress = malloc(sizeof(struct sockaddr_in6));
-    if (dstAddress == NULL) {
-        return -1;
-    }
-    memcpy(dst_addr, dstAddress, sizeof(struct sockaddr_in6));
-    dstAddress->sin6_port = htons(dst_port);
-    if (connect(newSocket, (struct sockaddr *)dstAddress, sizeof(struct sockaddr_in6)) == -1) {
-        free(srcAddress);
-        free(dstAddress);
-        return -1;
+    // Client (destination) socket
+    if (dest_addr != NULL && dst_port > 0) {
+        dest_addr->sin6_port = htons(dst_port);
+        if (connect(newSocket, (struct sockaddr *)dest_addr, sizeof(struct sockaddr_in6)) != 0) {
+            perror("Create socket, connect");
+            return -1;
+        }
     }
 
-    free(srcAddress);
-    free(dstAddress);
     return newSocket;
 }

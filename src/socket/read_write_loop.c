@@ -34,16 +34,20 @@ void read_write_loop(int sfd) {
     fd_set fdSet;
 
     struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 3;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
 
     //Unuseful but inginious needs to go through the warnings
     int written;
+    int justRead;
 
-    while (!getOut) {
+    while (getOut == 0) {
         // Reset everything for new iteration of the loop
         memset(stdInBuffer, 0, 1024);
         memset(sfdBuffer, 0, 1024);
+
+        justRead = 0;
+        written = 0;
 
         FD_ZERO(&fdSet);
         FD_SET(0, &fdSet);
@@ -52,8 +56,9 @@ void read_write_loop(int sfd) {
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(0, &fdSet)) {
-            if (read(0, stdInBuffer, 1024) != -1) {
-                written = write(sfd, stdInBuffer, 1024);
+            justRead = read(0, stdInBuffer, 1024);
+            if (justRead != -1) {
+                written = write(sfd, stdInBuffer, justRead);
                 if(written == -1) {
                     perror("Failed to write into the sfd file");
                 }
@@ -61,8 +66,9 @@ void read_write_loop(int sfd) {
         }
 
         if (FD_ISSET(sfd, &fdSet)) {
-            if (read(sfd, sfdBuffer, 1024) != -1) {
-                written = write(1, sfdBuffer, 1024);
+            justRead = read(sfd, sfdBuffer, 1024);
+            if (justRead != -1) {
+                written = write(1, sfdBuffer, justRead);
                 if(written == -1) {
                     perror("Failed to write on stdout");
                 }
