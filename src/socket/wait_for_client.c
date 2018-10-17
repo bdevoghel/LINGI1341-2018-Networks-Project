@@ -22,6 +22,8 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+#include "../packet/packet.h" // MAX_PAYLOAD_SIZE
+
 /**
  * Block the caller until a message is received on sfd,
  * and connect the socket to the source address of the received message.
@@ -35,7 +37,7 @@ int wait_for_client(int sfd) {
         return -1;
     }
 
-    int bufferLength = 1024; // TODO readapt for project, should be 512 I think
+    int bufferLength = MAX_PAYLOAD_SIZE;
 
     char buffer[bufferLength];
     struct sockaddr_in6 clientAddress;
