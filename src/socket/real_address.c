@@ -10,7 +10,7 @@
  *                                          https://stackoverflow.com/questions/20411223/warning-passing-argument-2-of-getsockname-from-incompatible-pointer-type
  */
 
-#include "real_address.h"
+
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "real_address.h"
 
 /**
  * Resolve the resource name to an usable IPv6 address

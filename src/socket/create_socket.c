@@ -10,12 +10,13 @@
  * (Inspiration forte due à une nette incompréhension du non fonctionnement)
  */
 
-#include "create_socket.h"
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <string.h>
+
+#include "create_socket.h"
 
 /**
  * Creates a socket and initialize it
@@ -36,7 +37,6 @@ int create_socket(struct sockaddr_in6 *source_addr, int src_port, struct sockadd
 
     // Server (source) socket
     if (source_addr != NULL && src_port > 0) {
-
         source_addr->sin6_port = htons(src_port);
         if (bind(newSocket, (struct sockaddr *)source_addr, sizeof(struct sockaddr_in6)) != 0) {
             perror("Create socket, bind");
