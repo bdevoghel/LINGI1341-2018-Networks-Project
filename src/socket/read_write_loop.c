@@ -36,7 +36,7 @@ void read_write_loop(int sfd) {
     fd_set fdSet;
 
     struct timeval timeout;
-    timeout.tv_sec = 5;
+    timeout.tv_sec = 10000;
     timeout.tv_usec = 0;
 
     //Unuseful but inginious needs to go through the warnings
@@ -59,7 +59,9 @@ void read_write_loop(int sfd) {
 
         if (FD_ISSET(0, &fdSet)) {
             justRead = read(0, stdInBuffer, MAX_PAYLOAD_SIZE);
-            if (justRead != -1) {
+            if (justRead == 0){
+                break;
+            }else if (justRead != -1) {
                 written = write(sfd, stdInBuffer, justRead);
                 if(written == -1) {
                     perror("Failed to write into the sfd file");
@@ -69,7 +71,9 @@ void read_write_loop(int sfd) {
 
         if (FD_ISSET(sfd, &fdSet)) {
             justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
-            if (justRead != -1) {
+            if (justRead == 0){
+                break;
+            }else if (justRead != -1) {
                 written = write(1, sfdBuffer, justRead);
                 if(written == -1) {
                     perror("Failed to write on stdout");
