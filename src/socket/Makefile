@@ -29,7 +29,7 @@ debug: CFLAGS += -g -DDEBUG -Wno-unused-parameter -fno-omit-frame-pointer
 debug: clean chat
 
 # We use an implicit rule to build an executable named 'chat'
-chat: chat.o
+chat: chat.o read_write_loop.o create_socket.o real_address.o wait_for_client.o
 
 .PHONY: clean
 

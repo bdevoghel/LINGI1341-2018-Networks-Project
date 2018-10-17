@@ -12,10 +12,10 @@
 #include <stdio.h> /* fprintf */
 #include <unistd.h> /* getopt */
 
-#include "real_address.c"
-#include "create_socket.c"
-#include "read_write_loop.c"
-#include "wait_for_client.c"
+#include "real_address.h"
+#include "create_socket.h"
+#include "read_write_loop.h"
+#include "wait_for_client.h"
 
 int main(int argc, char *argv[])
 {
