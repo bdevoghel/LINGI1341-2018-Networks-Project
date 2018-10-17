@@ -50,6 +50,9 @@ create_packet:
 create_stack:
 	@cd src/stack && $(MAKE) -s
 
+test:
+	@cd src/stack && $(MAKE) test
+
 # dépendances qui seront systématiquement reconstruites
 .PHONY: build clean rebuild
 

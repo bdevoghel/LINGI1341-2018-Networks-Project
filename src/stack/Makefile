@@ -35,6 +35,11 @@ stack.o: stack.c
 	@echo 'Building stack'
 	@$(CC) -c -o stack.o stack.c $(CFLAGS) $(LDFLAGS)
 
+test: clean stack.o
+	@$(CC) -c -o ../../tests/stackTest.o ../../tests/stackTest.c $(CFLAGS) $(LDFLAGS)
+	@$(CC) ../../tests/stackTest.o -o ../../tests/stackTest $(CFLAGS) $(LDFLAGS)
+	@cd ../../tests/ && ./stackTest
+
 
 .PHONY: clean
 
