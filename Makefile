@@ -25,7 +25,7 @@ LDFLAGS = -rdynamic
 SRC = src/packet/packet.o src/stack/stack.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/real_address.o src/socket/wait_for_client.o
 
 # noms des exécutables à générer
-EXEC = sender_receiver create_tests
+EXEC = sender_receiver # create_tests
 
 
 all: clean $(EXEC)
@@ -50,8 +50,8 @@ create_packet:
 create_stack:
 	@cd src/stack && $(MAKE) -s
 
-create_tests:
-	@cd tests && $(MAKE) -s
+#create_tests:
+#	@cd tests && $(MAKE) -s
 
 test: clean build
 	@cd src/stack && $(MAKE) test
