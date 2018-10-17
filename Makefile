@@ -22,7 +22,7 @@ CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for ge
 LDFLAGS = -rdynamic
 
 # fichiers sources du projet
-SRC = src/packet/packet.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/real_address.o src/socket/wait_for_client.o
+SRC = src/packet/packet.o src/stack/stack.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/real_address.o src/socket/wait_for_client.o
 
 # noms des exécutables à générer
 EXEC = sender receiver
@@ -32,9 +32,9 @@ all: clean $(EXEC)
 build: $(EXEC)
 
 cppcheck:
-	cppcheck --enable=all --check-config --suppress=missingIncludeSystem src/sender.c src/receiver.c src/packet/packet.c src/socket/create_socket.c src/socket/read_write_loop.c src/socket/real_address.c src/socket/wait_for_client.c
+	cppcheck --enable=all --check-config --suppress=missingIncludeSystem src/sender.c src/receiver.c src/packet/packet.c rc/stack/stack.c src/socket/create_socket.c src/socket/read_write_loop.c src/socket/real_address.c src/socket/wait_for_client.c
 
-$(EXEC): create_socket create_packet
+$(EXEC): create_socket create_packet create_stack
 	@echo 'Making executable'
 	@$(CC) -c -o src/sender.o src/sender.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) src/sender.o $(SRC) -o sender $(CFLAGS) $(LDFLAGS)
@@ -47,12 +47,16 @@ create_socket:
 create_packet:
 	@cd src/packet && $(MAKE) -s
 
+create_stack:
+	@cd src/stack && $(MAKE) -s
+
 # dépendances qui seront systématiquement reconstruites
 .PHONY: build clean rebuild
 
 # permet de supprimer tous les fichiers intermédiaires
 clean:
 	@echo 'Cleaning previously made files'
-	@rm -vf $(EXEC) tests/test tests/*.o src/*.o src/packet/*.o *.o
+	@rm -vf $(EXEC) tests/test tests/*.o src/*.o src/packet/*.o src/stack/*.o *.o
 	@cd src/socket && $(MAKE) -s clean
 	@cd src/packet && $(MAKE) -s clean
+	@cd src/stack && $(MAKE) -s clean
