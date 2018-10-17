@@ -34,10 +34,9 @@ typedef struct stack {
 
 /**
  * initialises stack
- * @param stack : pointer to NULL
- * @return : 0 if succeeds, 1 otherwise (stack points then to NULL)
+ * @return : ptr to callocated stack, NULL if calloc failed
  */
-int stack_init(stack_t *stack);
+stack_t *stack_init();
 
 /**
  * adds new node at the end of [stack] with [pkt] inside

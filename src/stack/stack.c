@@ -8,17 +8,8 @@
 
 #include "stack.h"
 
-int stack_init(stack_t *stack) {
-    if(stack != NULL) {
-        fprintf(stderr, "Stack not NULL when initializing\n");
-        return 1;
-    }
-    stack = (stack_t *) calloc(1, sizeof(stack_t));
-    if(stack == NULL) {
-        return 1;
-    }
-
-    return 0;
+stack_t *stack_init() {
+    return (stack_t *) calloc(1, sizeof(stack_t));
 }
 
 int stack_enqueue(stack_t *stack, pkt_t *pkt) {
