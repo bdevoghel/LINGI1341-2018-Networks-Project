@@ -28,7 +28,7 @@ all: clean packet.o
 
 # If we run `make debug` instead, keep the debug symbols for gdb and define the DEBUG macro.
 debug: CFLAGS += -g -DDEBUG -Wno-unused-parameter -fno-omit-frame-pointer
-debug: clean chat
+debug: clean packet.o
 
 # Building packet.o
 packet.o: packet.c
