@@ -17,6 +17,11 @@
 
 // TODO ensure no memory leakage !!
 
+#include "socket/real_address.h"
+#include "socket/create_socket.h"
+#include "socket/read_write_loop.h"
+#include "socket/wait_for_client.h"
+
 /**
  * sender permet de de realiser un transfer de donnees unidirectionnel et fiable
  *
@@ -85,8 +90,24 @@ int main(int argc, char *argv[]) {
     /* nombre de places initial dans le buffer d'envoi*/
 
     /* Resolve the hostname */
+    struct sockaddr_in6 address;
 
-    /* Get a socket */
+    char *realAddressResult = real_address(hostname, &address);
+    if (realAddressResult != NULL) {
+        fprintf(stderr, "Unable to resolve hostname \"%s\"", hostname);
+        return EXIT_FAILURE;
+    }
+
+    /* Create a socket */
+    if (address == NULL || port < 0) {
+        fprintf(stderr, "Destination address seems to be NULL or destination port is negative");
+        return EXIT_FAILURE;
+    }
+    int socketFileDescriptor = create_socket(NULL, -1, address, port);
+    if (socketFileDescriptor == -1) {
+        fprintf(stderr, "Error while creating the socket");
+        return EXIT_FAILURE;
+    }
 
     /* Process I/O */
 
