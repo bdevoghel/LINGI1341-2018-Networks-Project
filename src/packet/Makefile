@@ -1,5 +1,5 @@
 #
-# Makefile socket
+# Makefile packet
 # Octobre 2018
 #
 # Auteurs : Brieuc de Voghel   &   Nicolas van de Walle
@@ -24,23 +24,19 @@ CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for ge
 LDFLAGS= -rdynamic
 
 # Default target
-all: clean build
+all: clean packet.o
 
 # If we run `make debug` instead, keep the debug symbols for gdb and define the DEBUG macro.
 debug: CFLAGS += -g -DDEBUG -Wno-unused-parameter -fno-omit-frame-pointer
 debug: clean chat
 
-# Building object files and executable
-build:
-	@echo 'Building socket'
-	@$(CC) -c -o read_write_loop.o read_write_loop.c $(CFLAGS) $(LDFLAGS)
-	@$(CC) -c -o create_socket.o create_socket.c $(CFLAGS) $(LDFLAGS)
-	@$(CC) -c -o real_address.o real_address.c $(CFLAGS) $(LDFLAGS)
-	@$(CC) -c -o wait_for_client.o wait_for_client.c $(CFLAGS) $(LDFLAGS)
-	@$(CC) -c -o chat.o chat.c $(CFLAGS) $(LDFLAGS)
-	@$(CC)  chat.o read_write_loop.o create_socket.o real_address.o wait_for_client.o -o chat $(CFLAGS) $(LDFLAGS)
+# Building packet.o
+packet.o: packet.c
+	@echo 'Building packet'
+	@$(CC) -c -o packet.o packet.c $(CFLAGS) $(LDFLAGS)
 
-.PHONY: clean build
+
+.PHONY: clean
 
 clean:
-	@rm -vf chat *.o
+	@rm -vf *.o
