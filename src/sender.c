@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
             pkt_set_timestamp(packet, (const uint32_t) time(NULL));
 
             stack_enqueue(sendingStack, packet);
-
+            //TODO DELETE STACKTEST EXECUTABLE
             justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
         }
     }
