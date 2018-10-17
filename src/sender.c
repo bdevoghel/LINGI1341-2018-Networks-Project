@@ -31,6 +31,8 @@ char *fileToRead = NULL;
 
 uint8_t nextSequenceNumber = 0;
 
+stack_t *sendingStack = NULL;
+
 int ooops(char *message) {
     fprintf(stderr, "%s\n", message);
     return EXIT_FAILURE;
@@ -125,6 +127,10 @@ int main(int argc, char *argv[]) {
         return ooops("Error while waiting for the client");
     }
 
+    if (stack_init(sendingStack) == -1) {
+        return ooops("Error while initializing the sending stack (which is not really a stack but... arghh... no matter)");
+    }
+
     if(fileToRead) {
         int fd = open(fileToRead, O_RDWR);
         if (fd == -1) {
@@ -142,7 +148,8 @@ int main(int argc, char *argv[]) {
             pkt_set_seqnum(packet, nextSequenceNumber);
             pkt_set_payload(packet, buf, (const uint16_t) justRead);
             pkt_set_timestamp(packet, (const uint32_t) time(NULL));
-            
+
+            stack_enqueue(sendingStack, packet);
 
             justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
         }
