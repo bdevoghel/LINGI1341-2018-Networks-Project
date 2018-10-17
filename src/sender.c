@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <time.h>
 
 // TODO ensure no memory leakage !!
 
@@ -21,10 +22,18 @@
 #include "socket/create_socket.h"
 #include "socket/read_write_loop.h"
 #include "socket/wait_for_client.h"
+#include "packet/packet.h"
 
 char *hostname = NULL;
 int port = -1;
 char *fileToRead = NULL;
+
+uint8_t nextSequenceNumber = 0;
+
+int ooops(char *message) {
+    fprintf(stderr, "%s\n", message);
+    return EXIT_FAILURE;
+}
 
 /**
  * sender permet de de realiser un transfer de donnees unidirectionnel et fiable
@@ -93,36 +102,51 @@ int main(int argc, char *argv[]) {
 
     /* Resolve the hostname */
     if (hostname == NULL || port < 0) {
-        fprintf(stderr, "Hostname is NULL or destination port is negative");
-        return EXIT_FAILURE;
+        return ooops("Hostname is NULL or destination port is negative");
     }
 
     struct sockaddr_in6 address;
 
     const char *realAddressResult = real_address(hostname, &address);
     if (realAddressResult != NULL) {
-        fprintf(stderr, "Unable to resolve hostname \"%s\"", hostname);
-        return EXIT_FAILURE;
+        return ooops("Unable to resolve hostname");
     }
 
     /* Create a socket */
 
     int socketFileDescriptor = create_socket(NULL, -1, &address, port);
     if (socketFileDescriptor == -1) {
-        fprintf(stderr, "Error while creating the socket");
-        return EXIT_FAILURE;
+        return ooops("Error while creating the socket");
     }
 
     int waitForClientResult = wait_for_client(socketFileDescriptor);
     if (waitForClientResult == -1) {
-
-        return EXIT_FAILURE;
+        return ooops("Error while waiting for the client");
     }
 
-    //TODO Remove these lines
-    if(fileToRead == NULL) {
+    if(fileToRead) {
+        int fd = open(fileToRead, O_RDWR);
+        if (fd == -1) {
+            return ooops("Couldn't open file to read");
+        }
 
+        char buf[MAX_PAYLOAD_SIZE];
+
+        int justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
+        while (justRead != 0) {
+            pkt_t *packet = pkt_new();
+            pkt_set_type(packet, PTYPE_DATA);
+            pkt_set_tr(packet, 0);
+            pkt_set_window(packet, MAX_WINDOW_SIZE);
+            pkt_set_seqnum(packet, nextSequenceNumber);
+            pkt_set_payload(packet, buf, (const uint16_t) justRead);
+            pkt_set_timestamp(packet, (const uint32_t) time(NULL));
+
+
+            justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
+        }
     }
+
 
 
     /* Process I/O */
@@ -131,3 +155,4 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
+
