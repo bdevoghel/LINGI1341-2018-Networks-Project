@@ -90,24 +90,38 @@ int main(int argc, char *argv[]) {
     /* nombre de places initial dans le buffer d'envoi*/
 
     /* Resolve the hostname */
+    if (hostname == NULL || port < 0) {
+        fprintf(stderr, "Hostname is NULL or destination port is negative");
+        return EXIT_FAILURE;
+    }
+
     struct sockaddr_in6 address;
 
-    char *realAddressResult = real_address(hostname, &address);
+    const char *realAddressResult = real_address(hostname, &address);
     if (realAddressResult != NULL) {
         fprintf(stderr, "Unable to resolve hostname \"%s\"", hostname);
         return EXIT_FAILURE;
     }
 
     /* Create a socket */
-    if (address == NULL || port < 0) {
-        fprintf(stderr, "Destination address seems to be NULL or destination port is negative");
-        return EXIT_FAILURE;
-    }
-    int socketFileDescriptor = create_socket(NULL, -1, address, port);
+
+    int socketFileDescriptor = create_socket(NULL, -1, &address, port);
     if (socketFileDescriptor == -1) {
         fprintf(stderr, "Error while creating the socket");
         return EXIT_FAILURE;
     }
+
+    int waitForClientResult = wait_for_client(socketFileDescriptor);
+    if (waitForClientResult == -1) {
+
+        return EXIT_FAILURE;
+    }
+
+    //TODO Remove this lines
+    if(fileToRead == NULL) {
+
+    }
+
 
     /* Process I/O */
 

@@ -10,12 +10,6 @@
  * (Inspiration forte due à une nette incompréhension du non fonctionnement)
  */
 
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <string.h>
-
 #include "create_socket.h"
 
 /**

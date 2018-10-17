@@ -10,6 +10,17 @@
  *                                          https://stackoverflow.com/questions/20411223/warning-passing-argument-2-of-getsockname-from-incompatible-pointer-type
  */
 
+#ifndef __REAL_ADDRESS_H_
+#define __REAL_ADDRESS_H_
+
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 /**
  * Resolve the resource name to an usable IPv6 address
  * @address: The name to resolve
@@ -19,6 +30,6 @@
  *          (const char* means the caller cannot modify or free the return value,
  *           so do not use malloc!)
  */
-
-
 const char * real_address(const char *address, struct sockaddr_in6 *rval);
+
+#endif
