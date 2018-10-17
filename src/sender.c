@@ -127,9 +127,7 @@ int main(int argc, char *argv[]) {
         return ooops("Error while waiting for the client");
     }
 
-    if (stack_init(sendingStack) == -1) {
-        return ooops("Error while initializing the sending stack (which is not really a stack but... arghh... no matter)");
-    }
+    //sendingStack = stack_init();
 
     if(fileToRead) {
         int fd = open(fileToRead, O_RDWR);

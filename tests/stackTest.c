@@ -19,8 +19,7 @@
 
 
 void testInsertIntoStack(void) {
-    stack_t *stack = NULL;
-    stack_init(stack);
+    stack_t *stack = stack_init();
 
     pkt_t *packet = pkt_new();
     stack_enqueue(stack, packet);
