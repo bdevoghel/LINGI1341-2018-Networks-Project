@@ -36,7 +36,7 @@ stack.o: stack.c
 	@echo 'Building stack'
 	@$(CC) -c -o stack.o stack.c $(CFLAGS) $(LDFLAGS)
 
-test: clean stack.o
+test:
 	@$(CC) -c -o ../../tests/stackTest.o ../../tests/stackTest.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) ../../tests/stackTest.o ../packet/packet.o stack.o -o ../../tests/stackTest $(CFLAGS) $(LDFLAGS)
 	@cd ../../tests/ && ./stackTest

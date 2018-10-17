@@ -8,17 +8,8 @@
 
 #include "stack.h"
 
-int stack_init(stack_t *stack) {
-    if(stack != NULL) {
-        fprintf(stderr, "Stack not NULL when initializing\n");
-        return -1;
-    }
-    stack = (stack_t *) calloc(1, sizeof(stack_t));
-    if(stack == NULL) {
-        return -1;
-    }
-
-    return 0;
+stack_t *stack_init() {
+    return (stack_t *) calloc(1, sizeof(stack_t));
 }
 
 int stack_enqueue(stack_t *stack, pkt_t *pkt) {
@@ -29,29 +20,19 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
     }
     newNode->pkt = pkt;
     newNode->seqnum = pkt_get_seqnum(pkt);
-    printf("e");
-    if(stack==NULL) {
-        printf("NULL");
-    } else {
-        printf("NOT NULL");
-    }
-    printf("\n Size : %i\n", (int)stack->size);
     if(stack->size == 0) {
-        printf("f");
         newNode->next = newNode;
         newNode->prev = newNode;
         stack->first = newNode;
         stack->last = newNode;
         stack->toSend = newNode;
     } else {
-        printf("g");
         newNode->next = stack->last->next;
         newNode->prev = stack->last;
         stack->last->next->prev = newNode;
         stack->last->next = newNode;
         stack->last = newNode;
     }
-    printf("h");
     stack->size += 1;
 
     return 0;

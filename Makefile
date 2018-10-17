@@ -25,7 +25,7 @@ LDFLAGS = -rdynamic
 SRC = src/packet/packet.o src/stack/stack.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/real_address.o src/socket/wait_for_client.o
 
 # noms des exécutables à générer
-EXEC = sender_receiver
+EXEC = sender_receiver create_tests
 
 
 all: clean $(EXEC)
@@ -50,7 +50,10 @@ create_packet:
 create_stack:
 	@cd src/stack && $(MAKE) -s
 
-test:
+create_tests:
+	@cd tests && $(MAKE) -s
+
+test: clean build
 	@cd src/stack && $(MAKE) test
 
 # dépendances qui seront systématiquement reconstruites
@@ -59,7 +62,7 @@ test:
 # permet de supprimer tous les fichiers intermédiaires
 clean:
 	@echo 'Cleaning previously made files'
-	@rm -vf $(EXEC) tests/test tests/*.o src/*.o src/packet/*.o src/stack/*.o *.o
+	@rm -vf sender receiver tests/test tests/*.o src/*.o src/packet/*.o src/stack/*.o *.o
 	@cd src/socket && $(MAKE) -s clean
 	@cd src/packet && $(MAKE) -s clean
 	@cd src/stack && $(MAKE) -s clean
