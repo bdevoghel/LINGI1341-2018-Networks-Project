@@ -107,5 +107,5 @@ void stack_free(stack_t *stack) {
 }
 
 void node_free(node_t *node){
-    pkt_del(node->pkt);
+    free(node);
 }

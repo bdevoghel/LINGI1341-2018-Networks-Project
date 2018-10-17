@@ -29,8 +29,7 @@ void testInsertIntoStack(void) {
 }
 
 void testRemoveFromStack(void) {
-    stack_t *stack = NULL;
-    stack_init(stack);
+    stack_t *stack = stack_init();
 
     pkt_t *packet1 = pkt_new();
     pkt_set_seqnum(packet1, 10);
@@ -43,7 +42,6 @@ void testRemoveFromStack(void) {
     stack_enqueue(stack, packet2);
 
     pkt_t *pkt = stack_remove(stack, 12);
-
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
 }
 
