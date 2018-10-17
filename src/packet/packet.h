@@ -13,6 +13,12 @@
 
 #include <stddef.h> //size_t
 #include <stdint.h> // uintx_t
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
+#include <string.h> // memcpy
+#include <zlib.h> // CRC32
+#include <arpa/inet.h> // htons / ntohs
 
 /* Raccourci pour struct pkt */
 typedef struct pkt pkt_t;

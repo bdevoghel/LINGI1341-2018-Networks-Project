@@ -22,7 +22,7 @@ int stack_init(stack_t *stack) {
 }
 
 int stack_enqueue(stack_t *stack, pkt_t *pkt) {
-    node_t newNode = malloc(sizeof(node_t));
+    node_t *newNode = (node_t *) malloc(sizeof(node_t));
     if(newNode == NULL) {
         fprintf(stderr, "Out of memory at node creation\n");
         return 1;
@@ -59,7 +59,7 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
 
     node_t *runner = stack->first;
     while(runner->seqnum != seqnum) {
-        runner = runner.next;
+        runner = runner->next;
     }
     if(runner == stack->first) {
         if(runner == stack->toSend) {
@@ -90,6 +90,12 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     }
     stack->size -= 1;
 
+    if(stack->size == 0) {
+        stack->first = NULL;
+        stack->last = NULL;
+        stack->toSend = NULL;
+    }
+
     runner->next = NULL;
     runner->prev = NULL;
 
@@ -103,12 +109,12 @@ size_t stack_size(stack_t *stack) {
     return stack->size;
 }
 
-int stack_free(stack_t *stack) {
-    // TODO
-    return 1;
+void stack_free(stack_t *stack) {
+    while(stack->first != NULL) {
+        stack_remove(stack, stack->first->seqnum);
+    }
 }
 
-int node_free(node_t *node){
-    // TODO
-    return 1;
+void node_free(node_t *node){
+    pkt_del(node->pkt);
 }
