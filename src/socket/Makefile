@@ -38,7 +38,7 @@ build:
 	@$(CC) -c -o real_address.o real_address.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) -c -o wait_for_client.o wait_for_client.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) -c -o chat.o chat.c $(CFLAGS) $(LDFLAGS)
-	@$(CC)  chat.o read_write_loop.o create_socket.o real_address.o wait_for_client.o -o chat $(CFLAGS) $(LDFLAGS)
+	@$(CC) chat.o read_write_loop.o create_socket.o real_address.o wait_for_client.o -o chat $(CFLAGS) $(LDFLAGS)
 
 .PHONY: clean build
 
