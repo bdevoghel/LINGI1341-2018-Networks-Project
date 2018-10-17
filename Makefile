@@ -25,7 +25,7 @@ LDFLAGS = -rdynamic
 SRC = src/packet/packet.o src/stack/stack.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/real_address.o src/socket/wait_for_client.o
 
 # noms des exécutables à générer
-EXEC = sender receiver
+EXEC = sender_receiver
 
 
 all: clean $(EXEC)
@@ -34,7 +34,7 @@ build: $(EXEC)
 cppcheck:
 	cppcheck --enable=all --check-config --suppress=missingIncludeSystem src/sender.c src/receiver.c src/packet/packet.c rc/stack/stack.c src/socket/create_socket.c src/socket/read_write_loop.c src/socket/real_address.c src/socket/wait_for_client.c
 
-$(EXEC): create_socket create_packet create_stack
+sender_receiver: create_socket create_packet create_stack
 	@echo 'Making executable'
 	@$(CC) -c -o src/sender.o src/sender.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) src/sender.o $(SRC) -o sender $(CFLAGS) $(LDFLAGS)

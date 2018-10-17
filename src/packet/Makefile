@@ -11,6 +11,7 @@
 CC = gcc -g -lz
 
 # See gcc/clang manual to understand all flags
+CFLAGS += -g -W -lz -lcunit # options de compilation
 CFLAGS += -std=c99 # Define which version of the C standard to use
 CFLAGS += -Wall # Enable the 'all' set of warnings
 CFLAGS += -Werror # Treat all warnings as error
