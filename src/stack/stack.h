@@ -14,7 +14,7 @@
 #include <inttypes.h>
 #include <string.h> // memcpy
 
-#inculde "../packet/packet.h"
+#include "../packet/packet.h"
 
 typedef struct node {
     struct node *next;
@@ -32,7 +32,8 @@ typedef struct stack {
 
 /**
  * initialises stack
- * @return 0 if succeeds, 1 otherwise (stack points then to NULL)
+ * @param stack : pointer to NULL
+ * @return : 0 if succeeds, 1 otherwise (stack points then to NULL)
  */
 int stack_init(stack_t *stack);
 
@@ -40,7 +41,7 @@ int stack_init(stack_t *stack);
  * adds new node at the end of [stack] with [pkt] inside
  * @param node
  * @param pkt
- * @return 0 if succeeds, 1 otherwise (stack not modified)
+ * @return : 0 if succeeds, 1 otherwise (stack not modified)
  */
 int stack_enqueue(stack_t *stack, pkt_t *pkt);
 
@@ -48,28 +49,28 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt);
  * removes node with seqnum [seqnum] from [stack]
  * @param stack
  * @param seqnum
- * @return 0 if succeeds, 1 otherwise (stack not modified)
+ * @return : ptr to [pkt] inside removed node, NULL if failed
  */
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 
 /**
  * indicates number of nodes in [stack]
  * @param stack
- * @return number of nodes stocked in [stack]
+ * @return : number of nodes stocked in [stack]
  */
 size_t stack_size(stack_t *stack);
 
 /**
  * frees the whole stack and its content
  * @param stack
- * @return 0 if succeeds, 1 otherwise
+ * @return : 0 if succeeds, 1 otherwise
  */
 int stack_free(stack_t *stack);
 
 /**
  * frees the node and its content
  * @param stack
- * @return 0 if succeeds, 1 otherwise
+ * @return : 0 if succeeds, 1 otherwise
  */
 int node_free(node_t *node);
 
