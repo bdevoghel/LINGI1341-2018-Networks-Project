@@ -17,6 +17,10 @@
 
 // TODO ensure no memory leakage !!
 
+char *hostname;
+int port;
+char *fileToWrite;
+
 /**
  * receiver permet de de realiser un transfer de donnees unidirectionnel et fiable
  *
@@ -34,10 +38,8 @@ int main(int argc, char *argv[]) {
     /*
      * Reading arguments
      */
-    char *hostname;
-    int port;
+
     int fOption = 0;
-    char *fileToWrite;
 
     int opt;
     while((opt = getopt(argc, argv, "f:")) != -1) {
@@ -88,6 +90,7 @@ int main(int argc, char *argv[]) {
     /* Process I/O */
 
     /* a faire a la fin, quand length = 0 recu */
+    if (hostname || port || fileToWrite) {}
 
     return EXIT_SUCCESS;
 }

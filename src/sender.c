@@ -22,6 +22,10 @@
 #include "socket/read_write_loop.h"
 #include "socket/wait_for_client.h"
 
+char *hostname = NULL;
+int port = -1;
+char *fileToRead = NULL;
+
 /**
  * sender permet de de realiser un transfer de donnees unidirectionnel et fiable
  *
@@ -39,10 +43,8 @@ int main(int argc, char *argv[]) {
     /*
      * Reading arguments
      */
-    char *hostname;
-    int port;
+
     int fOption = 0;
-    char *fileToRead;
 
     int opt;
     while((opt = getopt(argc, argv, "f:")) != -1) {
@@ -117,7 +119,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    //TODO Remove this lines
+    //TODO Remove these lines
     if(fileToRead == NULL) {
 
     }
