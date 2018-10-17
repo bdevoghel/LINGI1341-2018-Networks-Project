@@ -9,12 +9,6 @@
  */
 
 #include "packet.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <inttypes.h>
-#include <string.h> // memcpy
-#include <zlib.h> // CRC32
-#include <arpa/inet.h> // htons / ntohs
 
 struct __attribute__((__packed__)) pkt {
     uint8_t window : 5;

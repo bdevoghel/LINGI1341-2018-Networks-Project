@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <stddef.h> //size_t
+#include <stdint.h> // uintx_t
 #include <string.h> // memcpy
 
 #include "../packet/packet.h"
@@ -63,15 +65,15 @@ size_t stack_size(stack_t *stack);
 /**
  * frees the whole stack and its content
  * @param stack
- * @return : 0 if succeeds, 1 otherwise
+ * @return
  */
-int stack_free(stack_t *stack);
+void stack_free(stack_t *stack);
 
 /**
  * frees the node and its content
  * @param stack
- * @return : 0 if succeeds, 1 otherwise
+ * @return
  */
-int node_free(node_t *node);
+void node_free(node_t *node);
 
 #endif //CODE_STACK_H
