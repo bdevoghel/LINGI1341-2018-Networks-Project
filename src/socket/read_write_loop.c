@@ -19,6 +19,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "../packet/packet.h" // MAX_PAYLOAD_SIZE
+
 /**
  * Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
@@ -28,8 +30,8 @@
 void read_write_loop(int sfd) {
     int getOut = 0;
 
-    char stdInBuffer[1024];
-    char sfdBuffer[1024];
+    char stdInBuffer[MAX_PAYLOAD_SIZE];
+    char sfdBuffer[MAX_PAYLOAD_SIZE];
 
     fd_set fdSet;
 
@@ -43,8 +45,8 @@ void read_write_loop(int sfd) {
 
     while (getOut == 0) {
         // Reset everything for new iteration of the loop
-        memset(stdInBuffer, 0, 1024);
-        memset(sfdBuffer, 0, 1024);
+        memset(stdInBuffer, 0, MAX_PAYLOAD_SIZE);
+        memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE);
 
         justRead = 0;
         written = 0;
@@ -56,7 +58,7 @@ void read_write_loop(int sfd) {
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(0, &fdSet)) {
-            justRead = read(0, stdInBuffer, 1024);
+            justRead = read(0, stdInBuffer, MAX_PAYLOAD_SIZE);
             if (justRead != -1) {
                 written = write(sfd, stdInBuffer, justRead);
                 if(written == -1) {
@@ -66,7 +68,7 @@ void read_write_loop(int sfd) {
         }
 
         if (FD_ISSET(sfd, &fdSet)) {
-            justRead = read(sfd, sfdBuffer, 1024);
+            justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
             if (justRead != -1) {
                 written = write(1, sfdBuffer, justRead);
                 if(written == -1) {
