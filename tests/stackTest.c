@@ -17,7 +17,7 @@
 #include <CUnit/CUnit.h>
 
 #include "../src/stack/stack.h"
-#include "../src/packet/packet.h"
+//#include "../src/packet/packet.h"
 
 
 void testInsertIntoStack(void) {
@@ -48,6 +48,40 @@ void testRemoveFromStack(void) {
     pkt_t *pkt = stack_remove(stack, 12);
 
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
+}
+
+int main()
+{
+    CU_pSuite pSuite = NULL;
+
+
+    /* initialize the CUnit test registry */
+    if (CUE_SUCCESS != CU_initialize_registry())
+        return CU_get_error();
+
+
+    /* add a suite to the registry */
+    pSuite = CU_add_suite("Suite_1", init_suite1, clean_suite1);
+    if (NULL == pSuite) {
+        CU_cleanup_registry(); //libérer les resources
+        return CU_get_error();
+    }
+
+
+    /* add the tests to the suite */
+    if (NULL == CU_add_test(pSuite, "Test insert into stack", testInsertIntoStack)
+        ||NULL == CU_add_test(pSuite, "Test remove from stack", testRemoveFromStack))
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+
+    /* Run all tests using the CUnit Basic interface */
+    CU_basic_set_mode(CU_BRM_VERBOSE); //un maximum de details
+    CU_basic_run_tests(); //lancer les tests
+    CU_cleanup_registry(); //laver le registre
+    return CU_get_error(); //retourne erreurs
 }
 
 /**
