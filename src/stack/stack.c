@@ -12,22 +12,22 @@ int stack_init(stack_t *stack) {
 
 }
 
-int enqueue(stack_t *stack, pkt_t *pkt) {
+int stack_enqueue(stack_t *stack, pkt_t *pkt) {
 
 }
 
-int remove(stack_t *stack, uint8_t seqnum) {
+pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
 
 }
 
-size_t size(stack_t stack) {
+size_t stack_size(stack_t *stack) {
 
 }
 
-int stack_free(stack_t stack) {
+int stack_free(stack_t *stack) {
 
 }
 
-int node_free(stack_t stack){
+int node_free(node_t *node){
 
 }

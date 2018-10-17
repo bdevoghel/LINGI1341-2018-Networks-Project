@@ -10,7 +10,45 @@
 
 // TODO
 
+#include <stdlib.h>
+#include <CUnit/Basic.h>
+#include <CUnit/Console.h>
+#include <CUnit/Automated.h>
+#include <CUnit/CUnit.h>
 
+#include "../src/stack/stack.h"
+#include "../src/packet/packet.h"
+
+
+void testInsertIntoStack(void) {
+    stack_t *stack = NULL;
+    stack_init(stack);
+
+    pkt_t *packet = pkt_new();
+    stack_enqueue(stack, packet);
+    stack_enqueue(stack, packet);
+
+    CU_ASSERT_EQUAL(stack_size(stack), 2);
+}
+
+void testRemoveFromStack(void) {
+    stack_t *stack = NULL;
+    stack_init(stack);
+
+    pkt_t *packet1 = pkt_new();
+    pkt_set_seqnum(packet1, 10);
+    pkt_set_timestamp(packet1, 987654321);
+    pkt_t *packet2 = pkt_new();
+    pkt_set_seqnum(packet2, 12);
+    pkt_set_timestamp(packet2, 123456789);
+
+    stack_enqueue(stack, packet1);
+    stack_enqueue(stack, packet2);
+
+    pkt_t *pkt = stack_remove(stack, 12);
+
+    CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
+}
 
 /**
  * TEST FOR PACKET.C

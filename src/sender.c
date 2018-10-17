@@ -23,6 +23,7 @@
 #include "socket/read_write_loop.h"
 #include "socket/wait_for_client.h"
 #include "packet/packet.h"
+#include "stack/stack.h"
 
 char *hostname = NULL;
 int port = -1;
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]) {
             pkt_set_seqnum(packet, nextSequenceNumber);
             pkt_set_payload(packet, buf, (const uint16_t) justRead);
             pkt_set_timestamp(packet, (const uint32_t) time(NULL));
-
+            
 
             justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
         }

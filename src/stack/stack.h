@@ -42,7 +42,7 @@ int stack_init(stack_t *stack);
  * @param pkt
  * @return 0 if succeeds, 1 otherwise (stack not modified)
  */
-int enqueue(stack_t *stack, pkt_t *pkt);
+int stack_enqueue(stack_t *stack, pkt_t *pkt);
 
 /**
  * removes node with seqnum [seqnum] from [stack]
@@ -50,27 +50,27 @@ int enqueue(stack_t *stack, pkt_t *pkt);
  * @param seqnum
  * @return 0 if succeeds, 1 otherwise (stack not modified)
  */
-int remove(stack_t *stack, uint8_t seqnum);
+pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 
 /**
  * indicates number of nodes in [stack]
  * @param stack
  * @return number of nodes stocked in [stack]
  */
-size_t size(stack_t stack);
+size_t stack_size(stack_t *stack);
 
 /**
  * frees the whole stack and its content
  * @param stack
  * @return 0 if succeeds, 1 otherwise
  */
-int stack_free(stack_t stack);
+int stack_free(stack_t *stack);
 
 /**
  * frees the node and its content
  * @param stack
  * @return 0 if succeeds, 1 otherwise
  */
-int node_free(stack_t stack);
+int node_free(node_t *node);
 
 #endif //CODE_STACK_H
