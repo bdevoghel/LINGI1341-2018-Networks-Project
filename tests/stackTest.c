@@ -8,8 +8,6 @@
  * Tests unitaires
  */
 
-// TODO
-
 #include <stdlib.h>
 #include <CUnit/Basic.h>
 #include <CUnit/Console.h>
@@ -48,6 +46,16 @@ void testRemoveFromStack(void) {
     pkt_t *pkt = stack_remove(stack, 12);
 
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
+}
+
+
+int init_suite1(void){
+    return 0;
+}
+
+
+int clean_suite1(void){
+    return 0;
 }
 
 int main()
