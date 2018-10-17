@@ -1,0 +1,5 @@
+src/socket/*.o
+src/packet/*.o
+*.o
+.idea
+src/socket/chat
