@@ -20,6 +20,12 @@
 #include <unistd.h>
 
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
+#include "../stack/stack.h"
+
+uint8_t nextSeqnum;
+uint8_t nextWindow;
+
+stack_t *sendingStack;
 
 /**
  * TODO
@@ -28,7 +34,7 @@
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-void read_write_loop_sender(int sfd) {
+int read_write_loop_sender(int sfd) {
     int getOut = 0;
 
     char stdInBuffer[MAX_PAYLOAD_SIZE];
@@ -58,28 +64,43 @@ void read_write_loop_sender(int sfd) {
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
-        if (FD_ISSET(0, &fdSet)) {
+        //if (FD_ISSET(sfd, &fdSet)) {
+
+            // NEW
+            size_t bytesWritten;
+            pkt_status_code pktStatusCode;
+            pkt_t *nextPktToSend;
+            size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
+            char pipeBuf[bufSize];
+
+            nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
+            if(nextPktToSend == NULL) {
+                return EXIT_FAILURE; //ooops("Error at pkt retrieving");
+            }
+
+            pktStatusCode = pkt_encode(nextPktToSend, pipeBuf, &bufSize);
+            if(pktStatusCode != PKT_OK) {
+                return EXIT_FAILURE; //ooops("Error at packet encoding");
+            }
+
+            bytesWritten = (size_t) write(sfd, pipeBuf, bufSize);
+            if((int)bytesWritten < 0) {
+                return EXIT_FAILURE; //ooops("Error at writing : bytesWritten < 0");
+            }
+            // NEW
+
+
+
             written = write(sfd, stdInBuffer, justRead);
             if(written == -1) {
                 perror("Failed to write into the sfd file");
             }
-        }
-
-        if (FD_ISSET(sfd, &fdSet)) {
-            justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
-            if (justRead == 0){
-                break;
-            }else if (justRead != -1) {
-                written = write(1, sfdBuffer, justRead);
-                if(written == -1) {
-                    perror("Failed to write on stdout");
-                }
-            }
-        }
+        //}
 
         if (feof(stdin) != 0) {
             getOut = 1;
         }
 
     }
+    return EXIT_SUCCESS;
 }

@@ -30,10 +30,11 @@ int port = -1;
 char *fileToRead = NULL;
 
 int fOption = 0;
-uint8_t nextSeqnum = 0;
-uint8_t nextWindow = 31;
 
-stack_t *sendingStack = NULL;
+extern uint8_t nextSeqnum;
+extern uint8_t nextWindow;
+
+extern stack_t *sendingStack;
 
 int socketFileDescriptor;
 
@@ -89,6 +90,11 @@ void set_nextWindow();
  *           EXIT_FAILURE si erreur d'execution OU arguments non coherents
  */
 int main(int argc, char *argv[]) {
+    nextSeqnum = 0;
+    nextWindow = 31;
+    sendingStack = NULL;
+
+
     int statusCode;
 
     /*
@@ -137,26 +143,12 @@ int main(int argc, char *argv[]) {
      * - reset when packet resend
      * - when run out : resend packet and reset
      */
-    size_t bytesWritten;
-    pkt_status_code pktStatusCode;
-    pkt_t *nextPktToSend;
-    size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
-    char pipeBuf[bufSize];
-
-    nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
-    if(nextPktToSend == NULL) {
-        return ooops("Error at pkt retrieving");
+    statusCode = read_write_loop_sender(socketFileDescriptor);
+    if(statusCode != 0) {
+        return statusCode;
     }
 
-    pktStatusCode = pkt_encode(nextPktToSend, pipeBuf, &bufSize);
-    if(pktStatusCode != PKT_OK) {
-        return ooops("Error at packet encoding");
-    }
-
-    bytesWritten = (size_t) write(socketFileDescriptor, pipeBuf, bufSize);
-    if((int)bytesWritten < 0) {
-        return ooops("Error at writing : bytesWritten < 0");
-    }
+    fprintf(stderr, "I was here !! 1\n");
 
 
 
