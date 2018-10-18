@@ -27,6 +27,8 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         stack->last = newNode;
         stack->toSend = newNode;
     } else {
+
+        // TODO @bdvoghel insert in the good order
         newNode->next = stack->last->next;
         newNode->prev = stack->last;
         stack->last->next->prev = newNode;
