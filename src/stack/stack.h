@@ -39,7 +39,7 @@ typedef struct stack {
 stack_t *stack_init();
 
 /**
- * adds new node at the end of [stack] with [pkt] inside
+ * adds new node in [stack] with [pkt] inside, keeps the stack sorted (first < last)
  * @param node
  * @param pkt
  * @return : 0 if succeeds, 1 otherwise (stack not modified)
