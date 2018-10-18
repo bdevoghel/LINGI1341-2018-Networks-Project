@@ -13,9 +13,8 @@
 #include "read_write_loop_receiver.h"
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
 
-extern stack_t *receivingStack;
-extern uint8_t expectedSeqnum;
-extern int window;
+uint8_t expectedSeqnum;
+int window;
 
 /**
  * Loop reading a socket and printing to stdout,
@@ -23,7 +22,7 @@ extern int window;
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-void read_write_loop_receiver(int sfd, int outputFileDescriptor) {
+void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDescriptor) {
     if(outputFileDescriptor) {
         //TODO REMOVE UNUSED
     }
@@ -64,7 +63,10 @@ void read_write_loop_receiver(int sfd, int outputFileDescriptor) {
             decodeResult = pkt_decode(sfdBuffer, justRead, packet);
             if (decodeResult == PKT_OK) {
                 // Store packet into the buffer
-                pkt_get_seqnum(packet);
+                if (pkt_get_seqnum(packet) - expectedSeqnum >= 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
+                    stack_enqueue(receivingStack, packet);
+                    printf("%s\n",pkt_get_payload(packet));
+                }
             }else {
                 // TODO : send NACK
             }
