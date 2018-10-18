@@ -154,7 +154,7 @@ int process_options(int argc,char *argv[]) {
     }
 
     if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
-        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (3 + fOption*2));
+        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (1 + fOption*2 + hostnameSet + portSet));
         return EXIT_FAILURE;
     }
 
