@@ -16,7 +16,7 @@
 #include <fcntl.h>
 #include <time.h>
 
-// TODO ensure no memory leakage !!
+// TODO : ensure no memory leakage !!
 
 #include "socket/real_address.h"
 #include "socket/create_socket.h"
@@ -29,10 +29,13 @@ char *hostname = NULL;
 int port = -1;
 char *fileToRead = NULL;
 
+int fOption = 0;
 uint8_t nextSeqnum = 0;
 uint8_t nextWindow = 31;
 
 stack_t *sendingStack = NULL;
+
+int socketFileDescriptor;
 
 /**
  * expliquer une erreur facilement et quitter le programme
@@ -46,8 +49,16 @@ int ooops(char *message) {
 
 /**
  * TODO : description
+ * @param argc
+ * @param argv
+ * @return
  */
-int resolve_hostname();
+int process_options(int argc,char *argv[]);
+
+/**
+ * TODO : description
+ */
+int init_connexion();
 
 /**
  * TODO : description
@@ -76,59 +87,22 @@ void set_nextWindow();
  * @param argv : sender hostname port [-f X]
  * @return : EXIT_SUCCESS si success
  *           EXIT_FAILURE si erreur d'execution OU arguments non coherents
- *           TODO enum erreurs possibles
  */
 int main(int argc, char *argv[]) {
-    /*
-     * Reading arguments
-     */
-
-    int fOption = 0;
-
-    int opt;
-    while((opt = getopt(argc, argv, "f:")) != -1) {
-        switch(opt) {
-            case 'f' :
-                fOption = 1;
-                fileToRead = optarg;
-                break;
-            default : // unknown option
-                fprintf(stderr, "Unknown argument detected : %s\n", optarg);
-                return EXIT_FAILURE;
-        }
-    }
-
-    int i = 1;
-    int hostnameSet = 0;
-    int portSet = 0;
-    while(i < argc) {
-        if(!strcmp(argv[i], "-f")) {
-            i++;
-        } else if(!hostnameSet) {
-            hostname = argv[i];
-            hostnameSet = 1;
-        } else {
-            port = atoi(argv[i]);
-            portSet = 1;
-        }
-        i++;
-    }
-
-    if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
-        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (3 + fOption*2));
-        return EXIT_FAILURE;
-    }
-
-    if(!fOption) {
-        fileToRead = NULL; // TODO read stdin
-    }
-
     int statusCode;
 
     /*
-     * Resolve the hostname
+     * Reading arguments
      */
-    statusCode = resolve_hostname();
+    statusCode = process_options(argc, argv);
+    if(statusCode != 0) {
+        return statusCode;
+    }
+
+    /*
+     * Resolve the hostname, create socket and initializes connexion
+     */
+    statusCode = init_connexion();
     if(statusCode != 0) {
         return statusCode;
     }
@@ -162,7 +136,48 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-int resolve_hostname() { // TODO return value ? what is the result ?
+int process_options(int argc,char *argv[]) {
+    int opt;
+    while((opt = getopt(argc, argv, "f:")) != -1) {
+        switch(opt) {
+            case 'f' :
+                fOption = 1;
+                fileToRead = optarg;
+                break;
+            default : // unknown option
+                return ooops("Unknown argument. Usage : \"receiver hostname port [-f X]\"");
+        }
+    }
+
+    int i = 1;
+    int hostnameSet = 0;
+    int portSet = 0;
+    while(i < argc) {
+        if(!strcmp(argv[i], "-f")) {
+            i++;
+        } else if(!hostnameSet) {
+            hostname = argv[i];
+            hostnameSet = 1;
+        } else {
+            port = atoi(argv[i]);
+            portSet = 1;
+        }
+        i++;
+    }
+
+    if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
+        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (3 + fOption*2));
+        return EXIT_FAILURE;
+    }
+
+    if(!fOption) {
+        fileToRead = NULL; // TODO read stdin
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int init_connexion() { // TODO return value ? what is the result ?
     if (hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }
@@ -174,10 +189,8 @@ int resolve_hostname() { // TODO return value ? what is the result ?
         return ooops("Unable to resolve hostname");
     }
 
-    /*
-     * Create a socket
-     */
-    int socketFileDescriptor = create_socket(NULL, -1, &address, port);
+    // Create a socket
+    socketFileDescriptor = create_socket(NULL, -1, &address, port);
     if (socketFileDescriptor == -1) {
         return ooops("Error while creating the socket");
     }
