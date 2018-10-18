@@ -29,8 +29,8 @@ int port = -1;
 char *fileToWrite = NULL;
 
 stack_t *receivingStack = NULL;
-uint8_t expectedSeqnum = 0;
-int window = MAX_WINDOW_SIZE;
+extern uint8_t expectedSeqnum;
+extern int window;
 
 
 int socketFileDescriptor;
@@ -106,7 +106,10 @@ int main(int argc, char *argv[]) {
         outputFileDescriptor = STDOUT_FILENO;
     }
 
-    read_write_loop_receiver(socketFileDescriptor, outputFileDescriptor);
+    expectedSeqnum = 0;
+    window = MAX_WINDOW_SIZE;
+
+    read_write_loop_receiver(socketFileDescriptor, receivingStack, outputFileDescriptor);
 
     /* a faire a la fin, quand length = 0 recu */
     if (hostname || port || fileToWrite) {}
