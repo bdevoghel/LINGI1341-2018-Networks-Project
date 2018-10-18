@@ -159,6 +159,7 @@ int process_options(int argc,char *argv[]) {
         fileToWrite = NULL; // TODO write in stdout
     }
 
+    fprintf(stderr, "Options processed.\n   Hostname      : %s\n   Port          : %i\n   File to write : %s\n", hostname, port, fileToWrite);
     return EXIT_SUCCESS;
 }
 
