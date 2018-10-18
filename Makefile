@@ -38,8 +38,8 @@ sender_receiver: create_socket create_packet create_stack
 	@echo 'Making executable'
 	@$(CC) -c -o src/sender.o src/sender.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) src/sender.o $(SRC) -o sender $(CFLAGS) $(LDFLAGS)
-	@$(CC) -c -o src/receiver.o src/receiver.c $(CFLAGS) $(LDFLAGS)
-	@$(CC) src/receiver.o $(SRC) -o receiver $(CFLAGS) $(LDFLAGS)
+	#@$(CC) -c -o src/receiver.o src/receiver.c $(CFLAGS) $(LDFLAGS)
+	#@$(CC) src/receiver.o $(SRC) -o receiver $(CFLAGS) $(LDFLAGS)
 
 create_socket:
 	@cd src/socket && $(MAKE) -s
