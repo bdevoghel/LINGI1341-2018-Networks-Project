@@ -27,13 +27,23 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         stack->last = newNode;
         stack->toSend = newNode;
     } else {
-
-        // TODO @bdvoghel insert in the good order
-        newNode->next = stack->last->next;
-        newNode->prev = stack->last;
-        stack->last->next->prev = newNode;
-        stack->last->next = newNode;
-        stack->last = newNode;
+        node_t *runner = stack->last;
+        while(pkt->seqnum <= runner->seqnum) {
+            runner = runner->next;
+        }
+        // insert in front of runner
+        newNode->next = runner->next;
+        newNode->prev = runner;
+        runner->next->prev = newNode;
+        runner->next = newNode;
+        if(runner == stack->last) {
+            stack->last = newNode;
+        } else if(newNode->next == stack->firts) {
+            stack->first == newNode;
+        }
+        if(newNode->next == stack->toRead) {
+            stack->toRead == newNode;
+        }
     }
     stack->size += 1;
 
