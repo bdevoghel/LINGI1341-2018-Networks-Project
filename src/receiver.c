@@ -17,9 +17,46 @@
 
 // TODO ensure no memory leakage !!
 
-char *hostname;
-int port;
-char *fileToWrite;
+#include "socket/real_address.h"
+#include "socket/create_socket.h"
+#include "socket/read_write_loop_receiver.h"
+#include "socket/wait_for_client.h"
+#include "packet/packet.h"
+#include "stack/stack.h"
+
+char *hostname = NULL;
+int port = -1;
+char *fileToWrite = NULL;
+
+stack_t *receivingStack = NULL;
+
+int socketFileDescriptor;
+
+int outputFileDescriptor;
+
+/**
+ * expliquer une erreur facilement et quitter le programme
+ * @param message
+ * @return
+ */
+int ooops(char *message) {
+    fprintf(stderr, "%s\n", message);
+    return EXIT_FAILURE;
+}
+
+
+/**
+ * TODO : description
+ * @param argc
+ * @param argv
+ * @return
+ */
+int process_options(int argc,char *argv[]);
+
+/**
+ * TODO : description
+ */
+int init_connexion();
 
 /**
  * receiver permet de de realiser un transfer de donnees unidirectionnel et fiable
@@ -35,6 +72,49 @@ char *fileToWrite;
  *           TODO enum erreurs possibles
  */
 int main(int argc, char *argv[]) {
+    int statusCode;
+
+    /*
+     * Reading arguments
+     */
+    statusCode = process_options(argc, argv);
+    if (statusCode != 0) {
+        return statusCode;
+    }
+
+    /*
+     * Resolve the hostname, create socket and initializes connexion
+     */
+    statusCode = init_connexion();
+    if(statusCode != 0) {
+        return statusCode;
+    }
+
+    /* initialisation du buffer de reception et du premier numero de sequence attendu*/
+
+    receivingStack = stack_init();
+    if(receivingStack == NULL) {
+        return ooops("Out of memory at stack creation");
+    }
+
+    if (fileToWrite != NULL) {
+        outputFileDescriptor = open(fileToWrite, O_RDWR | O_CREAT | O_APPEND, S_IRWXU); // NOLINT
+    } else {
+        outputFileDescriptor = stdout;
+    }
+
+    read_write_loop_receiver(socketFileDescriptor, , outputFileDescriptor);
+
+    /* a faire a la fin, quand length = 0 recu */
+    if (hostname || port || fileToWrite) {}
+
+    stack_free(receivingStack);
+
+    return EXIT_SUCCESS;
+}
+
+
+int process_options(int argc,char *argv[]) {
     /*
      * Reading arguments
      */
@@ -64,7 +144,7 @@ int main(int argc, char *argv[]) {
             hostname = argv[i];
             hostnameSet = 1;
         } else {
-            port = atoi(argv[i]);
+            port = atoi(argv[i]); // NOLINT
             portSet = 1;
         }
         i++;
@@ -79,18 +159,32 @@ int main(int argc, char *argv[]) {
         fileToWrite = NULL; // TODO write in stdout
     }
 
-    /* formation du lien entre le sender et le receiver */
-
-    /* initialisation du buffer de reception et du premier numero de sequence attendu*/
-
-    /* Resolve the hostname */
-
-    /* Get a socket */
-
-    /* Process I/O */
-
-    /* a faire a la fin, quand length = 0 recu */
-    if (hostname || port || fileToWrite) {}
-
     return EXIT_SUCCESS;
+}
+
+
+int init_connexion() { // TODO return value ? what is the result ?
+    if (hostname == NULL || port < 0) {
+        return ooops("Hostname is NULL or destination port is negative");
+    }
+
+    struct sockaddr_in6 address;
+
+    const char *realAddressResult = real_address(hostname, &address);
+    if (realAddressResult != NULL) {
+        return ooops("Unable to resolve hostname");
+    }
+
+    // Create a socket
+    socketFileDescriptor = create_socket(&address, port, NULL, -1);
+    if (socketFileDescriptor == -1) {
+        return ooops("Error while creating the socket");
+    }
+
+    int waitForClientResult = wait_for_client(socketFileDescriptor);
+    if (waitForClientResult == -1) {
+        return ooops("Error while waiting for the client");
+    }
+
+    return EXIT_SUCCESS; // TODO check value to return
 }
