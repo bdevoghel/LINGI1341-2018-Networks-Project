@@ -28,7 +28,8 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         stack->toSend = newNode;
     } else {
         node_t *runner = stack->last;
-        while(pkt->seqnum <= runner->seqnum) {
+        uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
+        while(pkt_seqnum <= runner->seqnum) {
             runner = runner->next;
         }
         // insert in front of runner
@@ -38,11 +39,11 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         runner->next = newNode;
         if(runner == stack->last) {
             stack->last = newNode;
-        } else if(newNode->next == stack->firts) {
-            stack->first == newNode;
+        } else if(newNode->next == stack->first) {
+            stack->first = newNode;
         }
-        if(newNode->next == stack->toRead) {
-            stack->toRead == newNode;
+        if(newNode->next == stack->toSend) {
+            stack->toSend = newNode;
         }
     }
     stack->size += 1;
