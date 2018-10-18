@@ -22,7 +22,7 @@ CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for ge
 LDFLAGS = -rdynamic
 
 # fichiers sources du projet
-SRC = src/packet/packet.o src/stack/stack.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/real_address.o src/socket/wait_for_client.o
+SRC = src/packet/packet.o src/stack/stack.o src/socket/create_socket.o src/socket/read_write_loop.o src/socket/read_write_loop_receiver.o src/socket/real_address.o src/socket/wait_for_client.o
 
 # noms des exécutables à générer
 EXEC = sender_receiver # create_tests
