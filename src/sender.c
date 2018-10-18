@@ -137,6 +137,29 @@ int main(int argc, char *argv[]) {
      * - reset when packet resend
      * - when run out : resend packet and reset
      */
+    size_t bytesWritten;
+    pkt_status_code pktStatusCode;
+    pkt_t *nextPktToSend;
+    size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
+    char pipeBuf[bufSize];
+
+    nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
+    if(nextPktToSend == NULL) {
+        return ooops("Error at pkt retrieving");
+    }
+
+    pktStatusCode = pkt_encode(nextPktToSend, pipeBuf, &bufSize);
+    if(pktStatusCode != PKT_OK) {
+        return ooops("Error at packet encoding");
+    }
+
+    bytesWritten = (size_t) write(socketFileDescriptor, pipeBuf, bufSize);
+    if((int)bytesWritten < 0) {
+        return ooops("Error at writing : bytesWritten < 0");
+    }
+
+
+
 
 
     stack_free(sendingStack);
