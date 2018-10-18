@@ -220,13 +220,6 @@ int init_connexion() { // TODO return value ? what is the result ?
         return ooops("Error while creating the socket");
     }
 
-    /*int waitForClientResult = wait_for_client(socketFileDescriptor);
-    if (waitForClientResult == -1) {
-        return ooops("Error while waiting for the client");
-    }
-    fprintf(stderr, "I was here !! 2\n");
-    */
-
     return EXIT_SUCCESS; // TODO check value to return
 }
 

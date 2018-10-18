@@ -50,7 +50,7 @@ int read_write_loop_sender(int sfd) {
     int written;
     int justRead;
 
-    while (getOut == 0) {
+    while (getOut == 0 && stack_size(sendingStack) > 0) {
         // Reset everything for new iteration of the loop
         memset(stdInBuffer, 0, MAX_PAYLOAD_SIZE);
         memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE);
@@ -66,41 +66,44 @@ int read_write_loop_sender(int sfd) {
 
         //if (FD_ISSET(sfd, &fdSet)) {
 
-            // NEW
-            size_t bytesWritten;
-            pkt_status_code pktStatusCode;
-            pkt_t *nextPktToSend;
-            size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
-            char pipeBuf[bufSize];
+        // NEW
+        size_t bytesWritten;
+        pkt_status_code pktStatusCode;
+        pkt_t *nextPktToSend;
+        size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
+        char pipeBuf[bufSize];
 
-            nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
-            if(nextPktToSend == NULL) {
-                return EXIT_FAILURE; //ooops("Error at pkt retrieving");
-            }
-
-            pktStatusCode = pkt_encode(nextPktToSend, pipeBuf, &bufSize);
-            if(pktStatusCode != PKT_OK) {
-                return EXIT_FAILURE; //ooops("Error at packet encoding");
-            }
-
-            bytesWritten = (size_t) write(sfd, pipeBuf, bufSize);
-            if((int)bytesWritten < 0) {
-                return EXIT_FAILURE; //ooops("Error at writing : bytesWritten < 0");
-            }
-            // NEW
-
-
-
-            written = write(sfd, stdInBuffer, justRead);
-            if(written == -1) {
-                perror("Failed to write into the sfd file");
-            }
-        //}
-
-        if (feof(stdin) != 0) {
-            getOut = 1;
+        nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
+        fprintf(stderr, "TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
+        fprintf(stderr, "Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
+        fprintf(stderr, "Length    : %04x\n", pkt_get_length(nextPktToSend));
+        fprintf(stderr, "Timestamp : %08x\n", pkt_get_timestamp(nextPktToSend));
+        fprintf(stderr, "CRC1      : %08x\n", pkt_get_crc1(nextPktToSend));
+        fprintf(stderr, "Payload   : %s\n", pkt_get_payload(nextPktToSend));
+        fprintf(stderr, "CRC2      : %08x\n", pkt_get_crc2(nextPktToSend));
+        if(nextPktToSend == NULL) {
+            perror("Next packet to send failed");
+            return EXIT_FAILURE; //ooops("Error at pkt retrieving");
         }
 
+        pktStatusCode = pkt_encode(nextPktToSend, pipeBuf, &bufSize);
+
+        if(pktStatusCode != PKT_OK) {
+            perror("Encode failed");
+            return EXIT_FAILURE; //ooops("Error at packet encoding");
+        }
+
+        bytesWritten = (size_t) send(sfd, pipeBuf, bufSize, MSG_CONFIRM);
+        if((int)bytesWritten < 0) {
+            perror("Write failed");
+            return EXIT_FAILURE; //ooops("Error at writing : bytesWritten < 0");
+        }
+
+        if(justRead && written) {
+            printf("%i", (int)timeout.tv_sec);
+        }
+        //TODO remove
+        getOut++;
     }
     return EXIT_SUCCESS;
 }

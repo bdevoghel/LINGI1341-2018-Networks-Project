@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* initialisation du buffer de reception et du premier numero de sequence attendu*/
-
+    perror("HEY");
     receivingStack = stack_init();
     if(receivingStack == NULL) {
         return ooops("Out of memory at stack creation");
@@ -105,9 +105,9 @@ int main(int argc, char *argv[]) {
     } else {
         outputFileDescriptor = STDOUT_FILENO;
     }
-
     expectedSeqnum = 0;
     window = MAX_WINDOW_SIZE;
+    perror("BEFORE LOOP");
 
     read_write_loop_receiver(socketFileDescriptor, receivingStack, outputFileDescriptor);
 
@@ -171,10 +171,12 @@ int process_options(int argc,char *argv[]) {
 
 
 int init_connexion() { // TODO return value ? what is the result ?
+    printf("aaa");
     if (hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }
 
+    printf("bbb");
     struct sockaddr_in6 address;
 
     const char *realAddressResult = real_address(hostname, &address);
@@ -187,11 +189,12 @@ int init_connexion() { // TODO return value ? what is the result ?
     if (socketFileDescriptor == -1) {
         return ooops("Error while creating the socket");
     }
-
+    printf("ccc");
     int waitForClientResult = wait_for_client(socketFileDescriptor);
     if (waitForClientResult == -1) {
         return ooops("Error while waiting for the client");
     }
+
 
     return EXIT_SUCCESS; // TODO check value to return
 }
