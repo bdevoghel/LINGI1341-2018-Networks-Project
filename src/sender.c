@@ -108,11 +108,6 @@ int main(int argc, char *argv[]) {
     }
 
     /*
-     * Linking sender & receiver
-     */
-    // TODO
-
-    /*
      * Segmentation of file into [MAX_PAYLOAD_SIZE] buffers, stocked on [sendingStack] with increasing seqnum
      */
     sendingStack = stack_init();
@@ -159,7 +154,7 @@ int process_options(int argc,char *argv[]) {
             hostname = argv[i];
             hostnameSet = 1;
         } else {
-            port = atoi(argv[i]);
+            port = atoi(argv[i]); // NOLINT
             portSet = 1;
         }
         i++;
