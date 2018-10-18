@@ -175,7 +175,7 @@ int process_options(int argc,char *argv[]) {
     }
 
     if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
-        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (3 + fOption*2));
+        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (1 + fOption*2 + hostnameSet + portSet));
         return EXIT_FAILURE;
     }
 
@@ -183,6 +183,7 @@ int process_options(int argc,char *argv[]) {
         fileToRead = NULL; // TODO read stdin
     }
 
+    fprintf(stderr, "Options processed.\n   Hostname     : %s\n   Port         : %i\n   File to read : %s\n", hostname, port, fileToRead);
     return EXIT_SUCCESS;
 }
 
@@ -203,11 +204,14 @@ int init_connexion() { // TODO return value ? what is the result ?
     if (socketFileDescriptor == -1) {
         return ooops("Error while creating the socket");
     }
+    fprintf(stderr, "I wait here !! 1\n");
 
     int waitForClientResult = wait_for_client(socketFileDescriptor);
     if (waitForClientResult == -1) {
         return ooops("Error while waiting for the client");
     }
+    fprintf(stderr, "I was here !! 2\n");
+
 
     return EXIT_SUCCESS; // TODO check value to return
 }
