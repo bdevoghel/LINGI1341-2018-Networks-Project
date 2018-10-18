@@ -54,6 +54,15 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt);
  */
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 
+
+/**
+ * removes node with seqnum [seqnum] from [stack] without checking the toSend param
+ * @param stack
+ * @param seqnum
+ * @return : ptr to [pkt] inside removed node, NULL if failed
+ */
+pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum);
+
 /**
  * returns pkt with seqnum [seqnum] and advances toSend pointer
  * @param stack

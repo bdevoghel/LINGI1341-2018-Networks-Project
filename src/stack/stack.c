@@ -91,6 +91,47 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     return toReturn;
 }
 
+pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
+
+    node_t *runner = stack->first;
+    while(runner->seqnum != seqnum) {
+        runner = runner->next;
+        if(runner == stack->first) {
+            fprintf(stderr, "Node to remove not in stack.\n");
+            return NULL;
+        }
+    }
+    if(runner == stack->first) {
+        runner->prev->next = runner->next;
+        runner->next->prev = runner->prev;
+        stack->first = stack->first->next;
+
+    } else if(runner == stack->last) {
+        runner->prev->next = runner->next;
+        runner->next->prev = runner->prev;
+        stack->last = stack->last->prev;
+
+    } else {
+        runner->prev->next = runner->next;
+        runner->next->prev = runner->prev;
+    }
+    stack->size -= 1;
+
+    if(stack->size == 0) {
+        stack->first = NULL;
+        stack->last = NULL;
+        stack->toSend = NULL;
+    }
+
+    runner->next = NULL;
+    runner->prev = NULL;
+
+    pkt_t *toReturn = runner->pkt;
+    node_free(runner);
+
+    return toReturn;
+}
+
 pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
     /* not possible because seqnum loops from 0 to 255
     if(stack->first->seqnum > seqnum) {
