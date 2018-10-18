@@ -55,6 +55,21 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt);
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 
 /**
+ * returns pkt with seqnum [seqnum] and advances toSend pointer
+ * @param stack
+ * @param seqnum
+ * @return : pkt with seqnum [seqnum], NULL if failed
+ */
+pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum);
+
+/**
+ * returns seqnum of packet that has to be send
+ * @param stack
+ * @return : seqnum of pkt pointed by [toSend]
+ */
+uint8_t stack_get_toSend_seqnum(stack_t *stack);
+
+/**
  * indicates number of nodes in [stack]
  * @param stack
  * @return : number of nodes stocked in [stack]

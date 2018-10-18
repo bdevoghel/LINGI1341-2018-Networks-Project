@@ -40,44 +40,38 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
 
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     if(stack->first->seqnum > seqnum) {
-        fprintf(stderr, "Node to remove was already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
+        fprintf(stderr, "Node to remove already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
         return NULL;
     }
     if(stack->last->seqnum < seqnum) {
-        fprintf(stderr, "Node to remove is not yet in stack. Stack ends with seqnum %i\n", stack->last->seqnum);
+        fprintf(stderr, "Node to remove not yet in stack. Stack ends with seqnum %i\n", stack->last->seqnum);
         return NULL;
     }
 
     node_t *runner = stack->first;
     while(runner->seqnum != seqnum) {
         runner = runner->next;
+        if(runner == stack->first) {
+            fprintf(stderr, "Node to remove not in stack.\n");
+            return NULL;
+        }
     }
-    if(runner == stack->first) {
-        if(runner == stack->toSend) {
-            fprintf(stderr, "Node to remove has not yet been send\n");
-            return NULL;
-        } else {
-            runner->prev->next = runner->next;
-            runner->next->prev = runner->prev;
-            stack->first = stack->first->next;
-        }
+    if(runner == stack->toSend) {
+        fprintf(stderr, "Node to remove has not yet been send\n");
+        return NULL;
+    }else if(runner == stack->first) {
+        runner->prev->next = runner->next;
+        runner->next->prev = runner->prev;
+        stack->first = stack->first->next;
+
     } else if(runner == stack->last) {
-        if(runner == stack->toSend) {
-            fprintf(stderr, "Node to remove has not yet been send\n");
-            return NULL;
-        } else {
-            runner->prev->next = runner->next;
-            runner->next->prev = runner->prev;
-            stack->last = stack->last->prev;
-        }
+        runner->prev->next = runner->next;
+        runner->next->prev = runner->prev;
+        stack->last = stack->last->prev;
+
     } else {
-        if(runner == stack->toSend) {
-            fprintf(stderr, "Node to remove has not yet been send\n");
-            return NULL;
-        } else {
-            runner->prev->next = runner->next;
-            runner->next->prev = runner->prev;
-        }
+        runner->prev->next = runner->next;
+        runner->next->prev = runner->prev;
     }
     stack->size -= 1;
 
@@ -96,13 +90,49 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     return toReturn;
 }
 
+pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
+    if(stack->first->seqnum > seqnum) {
+        fprintf(stderr, "Node to send already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
+        return NULL;
+    }
+    if(stack->last->seqnum < seqnum) {
+        fprintf(stderr, "Node to send not yet in stack. Stack ends with seqnum %i\n", stack->last->seqnum);
+        return NULL;
+    }
+
+    node_t *runner = stack->first;
+    while(runner->seqnum != seqnum) {
+        runner = runner->next;
+        if(runner == stack->first) {
+            fprintf(stderr, "Node to send not in stack.\n");
+            return NULL;
+        }
+    }
+
+    pkt_t *toReturn = runner->pkt;
+    stack->toSend = runner->next;
+
+    return toReturn;
+}
+
+uint8_t stack_get_toSend_seqnum(stack_t *stack){
+    return stack->toSend->seqnum;
+}
+
 size_t stack_size(stack_t *stack) {
     return stack->size;
 }
 
 void stack_free(stack_t *stack) {
     while(stack->first != NULL) {
-        stack_remove(stack, stack->first->seqnum);
+        pkt_t *returnValue = stack_remove(stack, stack->first->seqnum);
+        if(returnValue == NULL) {
+            fprintf(stderr, "Could not free stack cleanly. Forcing free (important data can get lost !) ...\n");
+            stack->toSend = NULL;
+        }
+    }
+    if(stack_size(stack) != 0) {
+        fprintf(stderr, "Exiting stack_free() with stack_size != 0\n");
     }
 }
 

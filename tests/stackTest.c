@@ -18,6 +18,8 @@
 //#include "../src/packet/packet.h"
 
 
+// TODO : check for memory leaks ! (use valgrind to check)
+
 void testInsertIntoStack(void) {
     stack_t *stack = stack_init();
 
@@ -26,6 +28,8 @@ void testInsertIntoStack(void) {
     stack_enqueue(stack, packet);
 
     CU_ASSERT_EQUAL(stack_size(stack), 2);
+
+    stack_free(stack);
 }
 
 void testRemoveFromStack(void) {
@@ -43,6 +47,8 @@ void testRemoveFromStack(void) {
 
     pkt_t *pkt = stack_remove(stack, 12);
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
+
+    stack_free(stack);
 }
 
 
@@ -74,8 +80,8 @@ int main()
 
 
     /* add the tests to the suite */
-    if (NULL == CU_add_test(pSuite, "Test insert into stack", testInsertIntoStack)
-        ||NULL == CU_add_test(pSuite, "Test remove from stack", testRemoveFromStack))
+    if (NULL == CU_add_test(pSuite, "Test insert into stack\n", testInsertIntoStack)
+        ||NULL == CU_add_test(pSuite, "Test remove from stack\n", testRemoveFromStack))
     {
         CU_cleanup_registry();
         return CU_get_error();
