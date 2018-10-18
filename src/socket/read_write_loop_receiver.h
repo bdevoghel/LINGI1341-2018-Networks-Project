@@ -29,6 +29,6 @@
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-void read_write_loop_receiver(const int sfd, stack_t *receivingStack, int outputFileDescriptor);
+void read_write_loop_receiver(const int sfd, int outputFileDescriptor);
 
 #endif

@@ -13,13 +13,20 @@
 #include "read_write_loop_receiver.h"
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
 
+extern stack_t *receivingStack;
+extern uint8_t expectedSeqnum;
+extern int window;
+
 /**
  * Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDescriptor) {
+void read_write_loop_receiver(int sfd, int outputFileDescriptor) {
+    if(outputFileDescriptor) {
+        //TODO REMOVE UNUSED
+    }
     int getOut = 0;
 
     char stdInBuffer[MAX_PAYLOAD_SIZE];
@@ -32,9 +39,9 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     timeout.tv_usec = 0;
 
     //Unuseful but inginious needs to go through the warnings
-    int written;
     int justRead;
 
+    pkt_t *packet = NULL;
     pkt_status_code decodeResult;
 
     while (getOut == 0) {
@@ -43,7 +50,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE);
 
         justRead = 0;
-        written = 0;
 
         FD_ZERO(&fdSet);
         FD_SET(0, &fdSet);
@@ -52,13 +58,15 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(sfd, &fdSet)) {
-            pkt_t *packet;
 
             justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
 
             decodeResult = pkt_decode(sfdBuffer, justRead, packet);
-            if (decodeResult != PKT_OK) {
-
+            if (decodeResult == PKT_OK) {
+                // Store packet into the buffer
+                pkt_get_seqnum(packet);
+            }else {
+                // TODO : send NACK
             }
 
 
