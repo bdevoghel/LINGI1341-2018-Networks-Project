@@ -29,14 +29,41 @@ char *hostname = NULL;
 int port = -1;
 char *fileToRead = NULL;
 
-uint8_t nextSequenceNumber = 0;
+uint8_t nextSeqnum = 0;
+uint8_t nextWindow = 31;
 
 stack_t *sendingStack = NULL;
 
+/**
+ * expliquer une erreur facilement et quitter le programme
+ * @param message
+ * @return
+ */
 int ooops(char *message) {
     fprintf(stderr, "%s\n", message);
     return EXIT_FAILURE;
 }
+
+/**
+ * TODO : description
+ */
+int resolve_hostname();
+
+/**
+ * TODO : description
+ * @return
+ */
+int read_file();
+
+/**
+ * TODO : description
+ */
+void increment_nextSeqnum();
+
+/**
+ * TODO : description
+ */
+void set_nextWindow();
 
 /**
  * sender permet de de realiser un transfer de donnees unidirectionnel et fiable
@@ -96,14 +123,46 @@ int main(int argc, char *argv[]) {
         fileToRead = NULL; // TODO read stdin
     }
 
+    int statusCode;
 
-    /* ouverture du fichier */
+    /*
+     * Resolve the hostname
+     */
+    statusCode = resolve_hostname();
+    if(statusCode != 0) {
+        return statusCode;
+    }
 
-    /* formation du lien entre le sender et le receiver */
+    /*
+     * Linking sender & receiver
+     */
+    // TODO
 
-    /* nombre de places initial dans le buffer d'envoi*/
+    /*
+     * Segmentation of file into [MAX_PAYLOAD_SIZE] buffers, stocked on [sendingStack] with increasing seqnum
+     */
+    sendingStack = stack_init();
+    if(sendingStack == NULL) {
+        return ooops("Out of memory at stack creation");
+    }
 
-    /* Resolve the hostname */
+    statusCode = read_file();
+    if(statusCode != 0) {
+        return statusCode;
+    }
+
+    /*
+     * Send packets (first 1 and then as much as receiver's window can accept) and wait for their ACK / NACK
+     */
+
+
+    stack_free(sendingStack);
+    // TODO other things to free ? memory leaks !!!
+
+    return EXIT_SUCCESS;
+}
+
+int resolve_hostname() { // TODO return value ? what is the result ?
     if (hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }
@@ -115,8 +174,9 @@ int main(int argc, char *argv[]) {
         return ooops("Unable to resolve hostname");
     }
 
-    /* Create a socket */
-
+    /*
+     * Create a socket
+     */
     int socketFileDescriptor = create_socket(NULL, -1, &address, port);
     if (socketFileDescriptor == -1) {
         return ooops("Error while creating the socket");
@@ -127,9 +187,11 @@ int main(int argc, char *argv[]) {
         return ooops("Error while waiting for the client");
     }
 
-    //sendingStack = stack_init();
+    return EXIT_SUCCESS; // TODO check value to return
+}
 
-    if(fileToRead) {
+int read_file() {
+    if (fileToRead) {
         int fd = open(fileToRead, O_RDWR);
         if (fd == -1) {
             return ooops("Couldn't open file to read");
@@ -138,27 +200,74 @@ int main(int argc, char *argv[]) {
         char buf[MAX_PAYLOAD_SIZE];
 
         int justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
+        if(justRead == -1) {
+            ooops("Error when reading");
+        }
         while (justRead != 0) {
             pkt_t *packet = pkt_new();
-            pkt_set_type(packet, PTYPE_DATA);
-            pkt_set_tr(packet, 0);
-            pkt_set_window(packet, MAX_WINDOW_SIZE);
-            pkt_set_seqnum(packet, nextSequenceNumber);
-            pkt_set_payload(packet, buf, (const uint16_t) justRead);
-            pkt_set_timestamp(packet, (const uint32_t) time(NULL));
+            if (packet == NULL) {
+                ooops("Out of memory at packet creation");
+            }
 
-            stack_enqueue(sendingStack, packet);
-            //TODO DELETE STACKTEST EXECUTABLE
+            int statusCode;
+
+            statusCode = pkt_set_type(packet, PTYPE_DATA);
+            if(statusCode != PKT_OK) {
+                ooops("Error in pkt_set_type()");
+            }
+
+            statusCode = pkt_set_tr(packet, 0);
+            if(statusCode != PKT_OK) {
+                ooops("Error in pkt_set_tr()");
+            }
+
+            statusCode = pkt_set_window(packet, nextWindow);
+            if(statusCode != PKT_OK) {
+                ooops("Error in pkt_set_window()");
+            }
+            set_nextWindow();
+
+            statusCode = pkt_set_seqnum(packet, nextSeqnum);
+            if(statusCode != PKT_OK) {
+                ooops("Error in pkt_set_seqnum()");
+            }
+            increment_nextSeqnum();
+
+            statusCode = pkt_set_payload(packet, buf, (const uint16_t) justRead);
+            if(statusCode != PKT_OK) {
+                ooops("Error in pkt_set_payload()");
+            }
+
+            statusCode = pkt_set_timestamp(packet, (const uint32_t) time(NULL));
+            if(statusCode != PKT_OK) {
+                ooops("Error in pkt_set_timestamp()");
+            }
+
+            statusCode = stack_enqueue(sendingStack, packet);
+            if(statusCode != 0) {
+                ooops("Error in stack_enqueue()");
+            }
+
             justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
+            if(justRead == -1) {
+                ooops("Error when reading");
+            }
         }
+
+        close(fd);
     }
 
-
-
-    /* Process I/O */
-
-    /* a faire a la fin des data apres avoir envoye un packet avec une longueur 0 ==> verification que receiver a bien recu le packet ??? */
-
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS; // TODO check value to return
 }
 
+void increment_nextSeqnum() {
+    if(nextSeqnum == 255) {
+        nextSeqnum = 0;
+    } else {
+        nextSeqnum += 1;
+    }
+}
+
+void set_nextWindow() {
+    // TODO implementation : get next window size based on how many packets were send and are awaiting ACK
+}
