@@ -35,6 +35,8 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     int written;
     int justRead;
 
+    pkt_status_code decodeResult;
+
     while (getOut == 0) {
         // Reset everything for new iteration of the loop
         memset(stdInBuffer, 0, MAX_PAYLOAD_SIZE);
@@ -50,15 +52,16 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(sfd, &fdSet)) {
+            pkt_t *packet;
+
             justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
-            if (justRead == 0){
-                break;
-            }else if (justRead != -1) {
-                written = write(1, sfdBuffer, justRead);
-                if(written == -1) {
-                    perror("Failed to write on stdout");
-                }
+
+            decodeResult = pkt_decode(sfdBuffer, justRead, packet);
+            if (decodeResult != PKT_OK) {
+
             }
+
+
         }
 
         if (feof(stdin) != 0) {
