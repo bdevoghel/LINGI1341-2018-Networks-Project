@@ -35,6 +35,7 @@ debug: clean build
 build:
 	@echo 'Building socket'
 	@$(CC) -c -o read_write_loop.o read_write_loop.c $(CFLAGS) $(LDFLAGS)
+	@$(CC) -c -o read_write_loop_sender.o read_write_loop_sender.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) -c -o read_write_loop_receiver.o read_write_loop_receiver.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) -c -o create_socket.o create_socket.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) -c -o real_address.o real_address.c $(CFLAGS) $(LDFLAGS)
