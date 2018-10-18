@@ -1,5 +1,5 @@
 #
-# Makefile stack
+# Makefile tests
 # Octobre 2018
 #
 # Auteurs : Brieuc de Voghel   &   Nicolas van de Walle
@@ -24,23 +24,24 @@ CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for ge
 # We have no libraries to link against except libc, but we want to keep the symbols for debugging
 LDFLAGS= -rdynamic
 
+SRC = stackTest.o
+
 # Default target
-all: clean stack.o
+all: clean $(SRC)
 
 # If we run `make debug` instead, keep the debug symbols for gdb and define the DEBUG macro.
 debug: CFLAGS += -g -DDEBUG -Wno-unused-parameter -fno-omit-frame-pointer
-debug: clean stack.o
+debug: clean $(SRC)
 
-# Building stack.o
-stack.o: stack.c
-	@echo 'Building stack'
-	@$(CC) -c -o stack.o stack.c $(CFLAGS) $(LDFLAGS)
+# Building tests
+stackTest.o: stackTest.c
+	@echo 'Building stackTest'
+	@$(CC) -c -o stackTest.o stackTest.c $(CFLAGS) $(LDFLAGS)
+	@$(CC) stackTest.o ../src/packet/packet.o ../src/stack/stack.o -o stackTest $(CFLAGS) $(LDFLAGS)
 
-test:
-	@cd ../../tests/ && ./stackTest
 
 
 .PHONY: clean
 
 clean:
-	@rm -vf *.o
+	@rm -vf *.o stackTest

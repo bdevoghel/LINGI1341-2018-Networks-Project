@@ -50,11 +50,11 @@ create_packet:
 create_stack:
 	@cd src/stack && $(MAKE) -s
 
-#create_tests:
-#	@cd tests && $(MAKE) -s
+create_tests:
+	@cd tests && $(MAKE) -s
 
-test: clean build
-	@cd src/stack && $(MAKE) test
+test: clean build create_tests
+	@cd src/stack && $(MAKE) -s test
 
 # dépendances qui seront systématiquement reconstruites
 .PHONY: build clean rebuild
@@ -66,3 +66,4 @@ clean:
 	@cd src/socket && $(MAKE) -s clean
 	@cd src/packet && $(MAKE) -s clean
 	@cd src/stack && $(MAKE) -s clean
+	@cd tests && $(MAKE) -s clean
