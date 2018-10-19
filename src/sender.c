@@ -16,30 +16,27 @@
 #include <fcntl.h>
 #include <time.h>
 
-// TODO : ensure no memory leakage !!
-
 #include "socket/real_address.h"
 #include "socket/create_socket.h"
 #include "socket/read_write_loop_sender.h"
 #include "socket/wait_for_client.h"
+
 #include "packet/packet.h"
 #include "stack/stack.h"
 
 char *hostname = NULL;
 int port = -1;
 char *fileToRead = NULL;
+int socketFileDescriptor;
 
 int fOption = 0;
 
-extern uint8_t nextSeqnum;
-extern uint8_t nextWindow;
-
-extern stack_t *sendingStack;
-
-int socketFileDescriptor;
+uint8_t nextSeqnum;
+uint8_t nextWindow;
+stack_t *sendingStack;
 
 /**
- * expliquer une erreur facilement et quitter le programme
+ * pour facilement expliquer une erreur et quitter le programme
  * @param message
  * @return
  */
@@ -94,8 +91,8 @@ int main(int argc, char *argv[]) {
     nextWindow = 31;
     sendingStack = NULL;
 
-
     int statusCode;
+
 
     /*
      * Reading arguments
@@ -143,18 +140,23 @@ int main(int argc, char *argv[]) {
      * - reset when packet resend
      * - when run out : resend packet and reset
      */
-    statusCode = read_write_loop_sender(socketFileDescriptor);
+
+    /*
+     * socketFileDescriptor : socket connexion on wich messages are written
+     * sendingStack         : stack in wich the packets to send are stored in increasing order
+     */
+    statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack);
     if(statusCode != 0) {
         return statusCode;
     }
-
-    fprintf(stderr, "I was here !! 1\n");
-
+    fprintf(stderr, "Packets sent successfully. Terminating transfer connexion.\n");
 
 
-
+    close(socketFileDescriptor);
+    // TODO : terminate connexion
 
     stack_free(sendingStack);
+
     // TODO other things to free ? memory leaks !!!
 
     return EXIT_SUCCESS;
@@ -177,120 +179,128 @@ int process_options(int argc,char *argv[]) {
     int hostnameSet = 0;
     int portSet = 0;
     while(i < argc) {
-        if(!strcmp(argv[i], "-f")) {
+        if(strcmp(argv[i], "-f") == 0) {
             i++;
-        } else if(!hostnameSet) {
+            if(!fOption) {
+                ooops("You need to put the -f option before the other arguments. Reading from stdin.");
+            }
+        } else if(hostnameSet == 0) {
             hostname = argv[i];
             hostnameSet = 1;
-        } else {
+        } else if(portSet == 0) {
             port = atoi(argv[i]); // NOLINT
             portSet = 1;
+        } else {
+            return ooops("Unknown argument. Usage : \"receiver hostname port [-f X]\"");
         }
         i++;
     }
 
-    if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
+    if(!hostnameSet || !portSet) {
         fprintf(stderr, "%i option(s) read. Usage : \"sender hostname port [-f X]\"\n", (1 + fOption*2 + hostnameSet + portSet));
         return EXIT_FAILURE;
     }
 
     if(!fOption) {
-        fileToRead = NULL; // TODO read stdin
+        fileToRead = "stdin"; // TODO read stdin
     }
 
-    fprintf(stderr, "Options processed.\n   Hostname     : %s\n   Port         : %i\n   File to read : %s\n", hostname, port, fileToRead);
+    fprintf(stderr, "Options processed.\n"
+                    "   Hostname      : %s\n"
+                    "   Port          : %i\n"
+                    "   File to read  : %s\n",
+            hostname, port, fileToRead);
     return EXIT_SUCCESS;
 }
 
-int init_connexion() { // TODO return value ? what is the result ?
-    if (hostname == NULL || port < 0) {
+int init_connexion() {
+    if(hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }
 
     struct sockaddr_in6 address;
 
-    const char *realAddressResult = real_address(hostname, &address);
-    if (realAddressResult != NULL) {
+    if(real_address(hostname, &address) != NULL) {
         return ooops("Unable to resolve hostname");
     }
 
     // Create a socket
     socketFileDescriptor = create_socket(NULL, -1, &address, port);
-    if (socketFileDescriptor == -1) {
-        return ooops("Error while creating the socket");
+    if(socketFileDescriptor < 0) {
+        return ooops("Error while creating socket");
     }
 
-    return EXIT_SUCCESS; // TODO check value to return
+    return EXIT_SUCCESS;
 }
 
 int read_file() {
-    if (fileToRead) {
-        int fd = open(fileToRead, O_RDWR);
-        if (fd == -1) {
-            return ooops("Couldn't open file to read");
-        }
-
-        char buf[MAX_PAYLOAD_SIZE];
-
-        int justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
-        if(justRead == -1) {
-            ooops("Error when reading");
-        }
-        while (justRead != 0) {
-            pkt_t *packet = pkt_new();
-            if (packet == NULL) {
-                ooops("Out of memory at packet creation");
-            }
-
-            int statusCode;
-
-            statusCode = pkt_set_type(packet, PTYPE_DATA);
-            if(statusCode != PKT_OK) {
-                ooops("Error in pkt_set_type()");
-            }
-
-            statusCode = pkt_set_tr(packet, 0);
-            if(statusCode != PKT_OK) {
-                ooops("Error in pkt_set_tr()");
-            }
-
-            statusCode = pkt_set_window(packet, nextWindow);
-            if(statusCode != PKT_OK) {
-                ooops("Error in pkt_set_window()");
-            }
-            set_nextWindow();
-
-            statusCode = pkt_set_seqnum(packet, nextSeqnum);
-            if(statusCode != PKT_OK) {
-                ooops("Error in pkt_set_seqnum()");
-            }
-            increment_nextSeqnum();
-
-            statusCode = pkt_set_payload(packet, buf, (const uint16_t) justRead);
-            if(statusCode != PKT_OK) {
-                ooops("Error in pkt_set_payload()");
-            }
-
-            statusCode = pkt_set_timestamp(packet, (const uint32_t) time(NULL));
-            if(statusCode != PKT_OK) {
-                ooops("Error in pkt_set_timestamp()");
-            }
-
-            statusCode = stack_enqueue(sendingStack, packet);
-            if(statusCode != 0) {
-                ooops("Error in stack_enqueue()");
-            }
-
-            justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
-            if(justRead == -1) {
-                ooops("Error when reading");
-            }
-        }
-
-        close(fd);
+    int fd = open(fileToRead, O_RDWR);
+    if (fd < 0) {
+        return ooops("Could not open file to read");
     }
 
-    return EXIT_SUCCESS; // TODO check value to return
+    char buf[MAX_PAYLOAD_SIZE];
+
+    int justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
+    if (justRead < 0) {
+        return ooops("Error when reading");
+    }
+
+    while (justRead != 0) {
+        pkt_t *packet = pkt_new();
+        if (packet == NULL) {
+            return ooops("Out of memory at packet creation");
+        }
+
+        int statusCode;
+
+        statusCode = pkt_set_type(packet, PTYPE_DATA);
+        if (statusCode != PKT_OK) {
+            return ooops("Error in pkt_set_type()");
+        }
+
+        statusCode = pkt_set_tr(packet, 0);
+        if (statusCode != PKT_OK) {
+            return ooops("Error in pkt_set_tr()");
+        }
+
+        statusCode = pkt_set_window(packet, nextWindow); // TODO set window at packet sending
+        if (statusCode != PKT_OK) {
+            return ooops("Error in pkt_set_window()");
+        }
+        set_nextWindow();
+
+        statusCode = pkt_set_seqnum(packet, nextSeqnum);
+        if (statusCode != PKT_OK) {
+            return ooops("Error in pkt_set_seqnum()");
+        }
+        increment_nextSeqnum();
+
+        statusCode = pkt_set_payload(packet, buf, (uint16_t) justRead);
+        if (statusCode != PKT_OK) {
+            return ooops("Error in pkt_set_payload()");
+        }
+
+        statusCode = pkt_set_timestamp(packet, (uint32_t) time(NULL)); // TODO set timestamp at packet sending
+        if (statusCode != PKT_OK) {
+            return ooops("Error in pkt_set_timestamp()");
+        }
+
+        statusCode = stack_enqueue(sendingStack, packet);
+        if (statusCode != 0) {
+            return ooops("Error in stack_enqueue()");
+        }
+
+        justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
+        if (justRead < 0) {
+            return ooops("Error when reading");
+        }
+    }
+
+    close(fd);
+
+    fprintf(stderr, "File read successfully. Ready to transmit.\n");
+    return EXIT_SUCCESS;
 }
 
 void increment_nextSeqnum() {

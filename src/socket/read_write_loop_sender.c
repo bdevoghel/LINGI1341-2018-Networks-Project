@@ -9,36 +9,40 @@
  * Réalisé avec l'aide des sites suivants : https://github.com/Donaschmi/LINGI1341/blob/master/Inginious/Envoyer_et_recevoir_des_donn%C3%A9es/read_write_loop.c
  */
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/select.h>
-#include <sys/time.h>
-#include <unistd.h>
-
-#include "../packet/packet.h" // MAX_PAYLOAD_SIZE
-#include "../stack/stack.h"
-
-uint8_t nextSeqnum;
-uint8_t nextWindow;
+#include "read_write_loop_sender.h"
 
 stack_t *sendingStack;
 
+size_t justWritten;
+size_t justRead;
+pkt_status_code pktStatusCode;
+int statusCode;
+
+pkt_t *nextPktToSend;
+pkt_t *lastPktReceived;
+pkt_t *pktACKed;
+
+size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
+char buf[bufSize];
+
+int8_t senderWindowSize = 1;
+uint32_t RTlength = 3000; // 3 sec
+
 /**
- * TODO
+ * Goes over all already sent packets and signals if a RT timer has expired
+ * @return : 101 if RT has expired, EXIT_SUCCES or EXIT_FAILURE otherwise
+ */
+int check_for_RT();
+
+/**
+ * TODO correct description
  * Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-int read_write_loop_sender(int sfd) {
-    int getOut = 0;
-
-    char stdInBuffer[MAX_PAYLOAD_SIZE];
-    char sfdBuffer[MAX_PAYLOAD_SIZE];
+int read_write_loop_sender(int sfd, stack_t *stack) {
+    sendingStack = stack;
 
     fd_set fdSet;
 
@@ -46,64 +50,110 @@ int read_write_loop_sender(int sfd) {
     timeout.tv_sec = 10000;
     timeout.tv_usec = 0;
 
-    //Unuseful but inginious needs to go through the warnings
-    int written;
-    int justRead;
-
-    while (getOut == 0 && stack_size(sendingStack) > 0) {
-        // Reset everything for new iteration of the loop
-        memset(stdInBuffer, 0, MAX_PAYLOAD_SIZE);
-        memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE);
-
-        justRead = 0;
-        written = 0;
-
+    int getOut = 0; // flag for loop
+    while (!getOut && stack_size(sendingStack) > 0) {
         FD_ZERO(&fdSet);
         FD_SET(0, &fdSet);
         FD_SET(sfd, &fdSet);
 
-        select(sfd + 1, &fdSet, NULL, NULL, &timeout);
-
-        //if (FD_ISSET(sfd, &fdSet)) {
-
-        // NEW
-        size_t bytesWritten;
-        pkt_status_code pktStatusCode;
-        pkt_t *nextPktToSend;
-        size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
-        char pipeBuf[bufSize];
+        select(sfd + 1, &fdSet, NULL, NULL, &timeout); // wait for sdf to be ready
 
         nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
-        fprintf(stderr, "TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
-        fprintf(stderr, "Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
-        fprintf(stderr, "Length    : %04x\n", pkt_get_length(nextPktToSend));
-        fprintf(stderr, "Timestamp : %08x\n", pkt_get_timestamp(nextPktToSend));
-        fprintf(stderr, "CRC1      : %08x\n", pkt_get_crc1(nextPktToSend));
-        fprintf(stderr, "Payload   : %s\n", pkt_get_payload(nextPktToSend));
-        fprintf(stderr, "CRC2      : %08x\n", pkt_get_crc2(nextPktToSend));
         if(nextPktToSend == NULL) {
             perror("Next packet to send failed");
-            return EXIT_FAILURE; //ooops("Error at pkt retrieving");
+            return EXIT_FAILURE;
         }
+        fprintf(stderr, "New packet ready to send :\n");
+        fprintf(stderr, "   TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
+        fprintf(stderr, "   Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
+        fprintf(stderr, "   Length    : %04x\n", pkt_get_length(nextPktToSend));
+        fprintf(stderr, "   Timestamp : %08x\n", pkt_get_timestamp(nextPktToSend));
+        fprintf(stderr, "   CRC1      : %08x\n", pkt_get_crc1(nextPktToSend));
+        fprintf(stderr, "   Payload   : %s\n", pkt_get_payload(nextPktToSend));
+        fprintf(stderr, "   CRC2      : %08x\n", pkt_get_crc2(nextPktToSend));
 
-        pktStatusCode = pkt_encode(nextPktToSend, pipeBuf, &bufSize);
-
+        pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
         if(pktStatusCode != PKT_OK) {
             perror("Encode failed");
-            return EXIT_FAILURE; //ooops("Error at packet encoding");
+            return EXIT_FAILURE;
         }
 
-        bytesWritten = (size_t) send(sfd, pipeBuf, bufSize, MSG_CONFIRM);
-        if((int)bytesWritten < 0) {
-            perror("Write failed");
-            return EXIT_FAILURE; //ooops("Error at writing : bytesWritten < 0");
+        justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
+        if((int)justWritten < 0) {
+            perror("Send failed");
+            return EXIT_FAILURE;
         }
+        senderWindowSize --;
 
-        if(justRead && written) {
-            printf("%i", (int)timeout.tv_sec);
+        justRead = recv(sfd, buf, bufSize, MSG_DONTWAIT); // reads ACK or NACK but doesn't wait for one
+        if((int) justRead < 0) {
+            perror("Recv failed");
+            return EXIT_FAILURE;
         }
-        //TODO remove
-        getOut++;
+        if((int) justRead > 0) { // ACK or NACK received
+            pktStatusCode = pkt_decode(buf, justRead, lastPktReceived);
+            if(pktStatusCode != PKT_OK) {
+                perror("Decode failed");
+                return EXIT_FAILURE;
+            }
+
+            if(pkt_get_type(lastPktReceived) == PTYPE_ACK) {
+                // TODO : gérer ACK
+                // TODO : update window (for sender AND receiver : windox in nextPktToSend AND updates # packets that can be send
+
+                pktACKed = stack_remove(sendingStack, pkt_get_seqnum(lastPktReceived));
+
+                nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
+                if(nextPktToSend == NULL) {
+                    perror("Next packet to send failed");
+                    return EXIT_FAILURE;
+                }
+
+            } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
+                // TODO : gérer NACK
+                // TODO : update window (for sender AND receiver : windox in nextPktToSend AND updates # packets that can be send
+
+                nextPktToSend = stack_send_pkt(sendingStack, pkt_get_seqnum(lastPktReceived));
+                if(nextPktToSend == NULL) {
+                    perror("Next packet to send failed");
+                    return EXIT_FAILURE;
+                }
+
+            } else {
+                perror("Received something else than ACK or NACK");
+                return EXIT_FAILURE;
+            }
+        } else { // nothing received yet
+            int wait = 1;
+            while(wait || senderWindowSize < 1) {
+                statusCode = check_for_RT();
+                if(statusCode != 0) {
+                    if(statusCode == 101) { // a RT has expired
+                        wait = 0;
+                    } else {
+                        return statusCode;
+                    }
+                }
+                // wait until sender can receive something
+            }
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+int check_for_RT() {
+    node_t = runner = sendingStack->first;
+    while(runner != sendingStack->toSend) {
+        if ((uint32_t) time(NULL) - pkt_get_timestamp(runner->pkt) > RTlength) {
+            nextPktToSend = stack_send_pkt(sendingStack, runner->seqnum);
+            if (nextPktToSend == NULL) {
+                perror("Next packet to send failed");
+                return EXIT_FAILURE;
+            }
+            return 101;
+        } else {
+            runner = runner->next;
+        }
     }
     return EXIT_SUCCESS;
 }
