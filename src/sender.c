@@ -281,11 +281,6 @@ int read_file() {
             return ooops("Error in pkt_set_payload()");
         }
 
-        statusCode = pkt_set_timestamp(packet, (uint32_t) time(NULL)); // TODO set timestamp at packet sending
-        if (statusCode != PKT_OK) {
-            return ooops("Error in pkt_set_timestamp()");
-        }
-
         statusCode = stack_enqueue(sendingStack, packet);
         if (statusCode != 0) {
             return ooops("Error in stack_enqueue()");

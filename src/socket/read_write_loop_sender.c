@@ -22,7 +22,7 @@ pkt_t *nextPktToSend;
 pkt_t *lastPktReceived;
 pkt_t *pktACKed;
 
-size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
+size_t bufSize;
 
 int8_t senderWindowSize = 1;
 uint32_t RTlength = 3; // [s]
@@ -42,6 +42,7 @@ int check_for_RT();
  */
 int read_write_loop_sender(int sfd, stack_t *stack) {
     sendingStack = stack;
+    bufSize = 16 + MAX_PAYLOAD_SIZE;
     char buf[bufSize];
 
     fd_set fdSet;
@@ -63,6 +64,12 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         FD_SET(sfd, &fdSet);
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout); // wait for sdf to be ready
+
+        pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL));
+        if (pktStatusCode != PKT_OK) {
+            perror("Error in pkt_set_timestamp()");
+            return EXIT_FAILURE;
+        }
 
         pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
         if(pktStatusCode != PKT_OK) {
@@ -88,9 +95,9 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         }
         senderWindowSize --;
 
-        justRead = recv(sfd, buf, bufSize, MSG_DONTWAIT); // reads ACK or NACK but doesn't wait for one
+        justRead = read(sfd, buf, bufSize);
         if((int) justRead < 0) {
-            perror("Recv failed");
+            perror("Read failed");
             return EXIT_FAILURE;
         }
         if((int) justRead > 0) { // ACK or NACK received
@@ -143,6 +150,13 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
             } // while(wait && senderWindowSize <= 0)
         } // if justRead
     } // while(!getOut && stack_size(sendingStack) > 0)
+
+    pkt_del(nextPktToSend);
+    pkt_del(lastPktReceived);
+    pkt_del(pktACKed);
+
+    stack_free(sendingStack);
+
     return EXIT_SUCCESS;
 }
 
