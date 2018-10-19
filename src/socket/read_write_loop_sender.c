@@ -23,7 +23,6 @@ pkt_t *lastPktReceived;
 pkt_t *pktACKed;
 
 size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
-char buf[bufSize];
 
 int8_t senderWindowSize = 1;
 uint32_t RTlength = 3000; // 3 sec
@@ -43,6 +42,7 @@ int check_for_RT();
  */
 int read_write_loop_sender(int sfd, stack_t *stack) {
     sendingStack = stack;
+    char buf[bufSize];
 
     fd_set fdSet;
 
@@ -142,7 +142,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 }
 
 int check_for_RT() {
-    node_t = runner = sendingStack->first;
+    node_t *runner = sendingStack->first;
     while(runner != sendingStack->toSend) {
         if ((uint32_t) time(NULL) - pkt_get_timestamp(runner->pkt) > RTlength) {
             nextPktToSend = stack_send_pkt(sendingStack, runner->seqnum);

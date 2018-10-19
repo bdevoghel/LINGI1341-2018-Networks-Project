@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
 #include "../stack/stack.h"
