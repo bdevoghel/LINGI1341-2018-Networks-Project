@@ -95,7 +95,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt);
  * @return: Un code indiquant si l'operation a reussi ou E_NOMEM si
  *         le buffer est trop petit.
  */
-pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len);
+pkt_status_code pkt_encode(pkt_t *pkt, char *buf, size_t *len);
 
 /**
  * Accesseurs pour les champs toujours presents du paquet.

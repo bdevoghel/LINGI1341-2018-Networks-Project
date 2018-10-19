@@ -155,7 +155,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     return PKT_OK;
 }
 
-pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
+pkt_status_code pkt_encode(pkt_t *pkt, char *buf, size_t *len) {
     if(pkt == NULL || ((pkt_get_type(pkt) != PTYPE_DATA) && (pkt_get_tr(pkt) != 0))) { // condition sur le champ TR
         return E_UNCONSISTENT;
     }
