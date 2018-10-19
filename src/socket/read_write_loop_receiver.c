@@ -70,7 +70,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                             "E_SEQNUM= %i\n"
                             "E_NOMEM= %i\n"
                             "E_NOHEADER= %i\n"
-                            "E_UNCONSISTENT =%i", PKT_OK, E_TYPE, E_TR, E_LENGTH, E_CRC, E_WINDOW, E_SEQNUM, E_NOMEM, E_NOHEADER, E_UNCONSISTENT);
+                            "E_UNCONSISTENT =%i\n", PKT_OK, E_TYPE, E_TR, E_LENGTH, E_CRC, E_WINDOW, E_SEQNUM, E_NOMEM, E_NOHEADER, E_UNCONSISTENT);
             fprintf(stderr, "Just got decodeResult = %i and seqnum %i\n", decodeResult, pkt_get_seqnum(packet));
             if (decodeResult == PKT_OK) {
                 perror("PKT OK");
