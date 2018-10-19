@@ -139,10 +139,12 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     if(statusCode != PKT_OK) {
         return statusCode;
     }
-
-    uint32_t crc2Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+12, (uInt) sizeof(char)*pkt_get_length(pkt));
-    if(pkt_get_crc2(pkt) != crc2Calculated) {
-        return E_CRC;
+    if(pkt_get_length(pkt) != 0) {
+        uint32_t crc2Calculated = (uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) data + 12,
+                                                   (uInt) sizeof(char) * pkt_get_length(pkt));
+        if (pkt_get_crc2(pkt) != crc2Calculated) {
+            return E_CRC;
+        }
     }
 
     if(pkt_get_type(pkt) == 0) {

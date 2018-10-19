@@ -89,7 +89,6 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         fprintf(stderr, "   Payload   : %s\n", pkt_get_payload(nextPktToSend));
         fprintf(stderr, "   CRC2      : %08x\n", pkt_get_crc2(nextPktToSend));
         */
-
         justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
         if((int)justWritten < 0) {
             perror("Send failed");
@@ -97,30 +96,28 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         }
         senderWindowSize --;
 
-        fprintf(stderr, "HERE I am 1 ...\n");
-
         FD_ZERO(&fdSet);
         FD_SET(sfd, &fdSet);
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(sfd, &fdSet)) {
-
+            bufSize = 12;
             justRead = (size_t) read(sfd, buf, bufSize);
             if((int) justRead < 0) {
                 perror("Recv failed");
                 return EXIT_FAILURE;
             }
 
-            fprintf(stderr, "HERE I am 2 ...\n");
             if ((int) justRead > 0) { // ACK or NACK received
+                lastPktReceived = pkt_new();
                 pktStatusCode = pkt_decode(buf, justRead, lastPktReceived);
+                fprintf(stderr, "pktStatusCode %i and just read %i\n", pktStatusCode, (int) justRead);
                 if (pktStatusCode != PKT_OK) {
                     perror("Decode failed");
                     return EXIT_FAILURE;
                 }
 
-                fprintf(stderr, "HERE I am 3 ...\n");
                 if (pkt_get_type(lastPktReceived) == PTYPE_ACK) {
                     fprintf(stderr, "Just got a ACK :\n");
                     fprintf(stderr, "   TypeTrWin : %02x\n",
@@ -163,7 +160,6 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                     perror("Received something else than ACK or NACK");
                     return EXIT_FAILURE;
                 }
-                fprintf(stderr, "HERE I am 4 ...\n");
             }
         } else { // nothing received yet
                 int wait = 1;
@@ -183,7 +179,6 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
             // if justRead
 
         }
-        fprintf(stderr, "HERE I am 5 ...\n");
     } // while(!getOut && stack_size(sendingStack) > 0)
 
     pkt_del(nextPktToSend);
