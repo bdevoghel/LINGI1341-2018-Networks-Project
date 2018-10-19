@@ -30,7 +30,7 @@ char *fileToWrite = NULL;
 
 stack_t *receivingStack = NULL;
 extern uint8_t expectedSeqnum;
-extern int window;
+extern uint8_t window;
 
 
 int socketFileDescriptor;
