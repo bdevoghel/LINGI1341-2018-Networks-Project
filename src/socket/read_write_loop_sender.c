@@ -50,11 +50,13 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     timeout.tv_sec = 10000;
     timeout.tv_usec = 0;
 
+    fprintf(stderr,"HERE in read_write_loop_sender() before stack_send_pkt(), stack_get_toSend_seqnum(sendingStack) returns %i\n", stack_get_toSend_seqnum(sendingStack));
     nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
     if(nextPktToSend == NULL) {
         perror("Next packet to send failed");
         return EXIT_FAILURE;
     }
+    fprintf(stderr,"HERE in read_write_loop_sender() after stack_send_pkt(), the first nextPktToSend has seqnum %i\n", pkt_get_seqnum(nextPktToSend));
 
     int getOut = 0; // flag for loop
     while(!getOut && stack_size(sendingStack) > 0) {

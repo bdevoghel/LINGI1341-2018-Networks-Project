@@ -29,8 +29,10 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
     } else {
         node_t *runner = stack->last;
         uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
+        int hasMoved = 0;
         while(pkt_seqnum <= runner->seqnum) {
             runner = runner->next;
+            hasMoved++;
         }
         // insert in front of runner
         newNode->next = runner->next;
@@ -42,7 +44,7 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         } else if(newNode->next == stack->first) {
             stack->first = newNode;
         }
-        if(newNode->next == stack->toSend) {
+        if(newNode->next == stack->toSend && hasMoved) {
             stack->toSend = newNode;
         }
     }
@@ -146,6 +148,7 @@ pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
 }
 
 pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
+    fprintf(stderr,"HERE in stack_send_pkt() with seqnum %i\n", seqnum);
     /* not possible because seqnum loops from 0 to 255
     if(stack->first->seqnum > seqnum) {
         fprintf(stderr, "Node to send already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
