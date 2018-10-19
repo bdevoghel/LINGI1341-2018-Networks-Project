@@ -45,6 +45,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
     char *ackBuffer;
     int encodeResult;
+    uint32_t previousTimestamp;
 
     while (getOut == 0) {
         // Reset everything for new iteration of the loop
@@ -60,9 +61,13 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
 
-
-
+            previousTimestamp = pkt_get_timestamp(packet);
+            //fprintf(stderr,"Decode result = %i with size %i", decodeResult, pkt_get_length(packet));
             if (decodeResult == PKT_OK) {
+                if (pkt_get_type(packet) == PTYPE_DATA && pkt_get_length(packet) == 0) {
+                    fprintf(stderr,"\n");
+                    break;
+                }
                 if (pkt_get_seqnum(packet) == expectedSeqnum) {
                     written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
                     pkt_del(packet);
@@ -75,14 +80,12 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     pkt_set_type(packet, PTYPE_ACK);
                     pkt_set_window(packet, window);
                     pkt_set_seqnum(packet, expectedSeqnum);
-                    pkt_set_timestamp(packet, (uint32_t) time(NULL));
+                    pkt_set_timestamp(packet, previousTimestamp);
                     pkt_set_length(packet, 0);
 
                     ackBuffer = malloc(sizeof(packet));
 
                     written = 12;
-
-
                     encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
                     if (encodeResult == E_NOMEM) {
                         fprintf(stderr, "Unable to encode the ACK with seqnum %i\n", expectedSeqnum);
@@ -99,7 +102,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     //TODO : send NACK
                 }
             } else {
-
                 pkt_del(packet);
                 // TODO : send NACK
             }

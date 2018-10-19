@@ -73,7 +73,7 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
         }
     }
     if(runner == stack->toSend) {
-        fprintf(stderr, "Node to remove has not yet been send\n");
+        fprintf(stderr, "Node %i to remove has not yet been send\n", runner->seqnum);
         return NULL;
     }else if(runner == stack->first) {
         runner->prev->next = runner->next;
@@ -168,7 +168,11 @@ pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
     }
 
     pkt_t *toReturn = runner->pkt;
-    stack->toSend = runner->next;
+    if (runner->next != runner) {
+        stack->toSend = runner->next;
+    } else {
+        stack->toSend = NULL;
+    }
 
     return toReturn;
 }

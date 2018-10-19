@@ -35,6 +35,8 @@ size_t bufSize;
 int8_t receiverWindowSize = 1;
 uint32_t RTlength = 3; // [s]
 
+uint8_t nextWindow;
+
 /**
  * Goes over all already sent packets and signals if a RT timer has expired
  * @return : 101 if RT has expired, EXIT_SUCCES or EXIT_FAILURE otherwise
@@ -62,11 +64,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     struct timeval timeout2;
     timeout2.tv_sec = 5;
     timeout2.tv_usec = 1;
-    nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
-    if(nextPktToSend == NULL) {
-        perror("Next packet to send failed");
-        return EXIT_FAILURE;
-    }
+
 
     //int getOut = 0; // flag for loop
     while(stack_size(sendingStack) > 0) {
@@ -79,6 +77,11 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout1); // wait for sdf to be ready
         */
+        nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
+        if(nextPktToSend == NULL) {
+            perror("Next packet to send failed");
+            return EXIT_FAILURE;
+        }
 
         pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL));
         if (pktStatusCode != PKT_OK) {
@@ -98,7 +101,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         fprintf(stderr, "   Length    : %04x\n", pkt_get_length(nextPktToSend));
         fprintf(stderr, "   Timestamp : %08x\n\n", pkt_get_timestamp(nextPktToSend));
         */
-        fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i" RESET "\n\n", pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend));
+        fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
 
 
         justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
@@ -130,27 +133,20 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 }
 
                 if (pkt_get_type(lastPktReceived) == PTYPE_ACK) {
-                    fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived));
-                    /*
-                    fprintf(stderr, "Just got a ACK :\n");
-                    fprintf(stderr, "   TypeTrWin : %02x\n", (pkt_get_type(lastPktReceived) << 6) + (pkt_get_tr(lastPktReceived) << 5) + pkt_get_window(lastPktReceived));
-                    fprintf(stderr, "   Seqnum    : %02x\n", pkt_get_seqnum(lastPktReceived));
-                    fprintf(stderr, "   Length    : %04x\n", pkt_get_length(lastPktReceived));
-                    fprintf(stderr, "   Timestamp : %08x\n", pkt_get_timestamp(lastPktReceived));
-                    fprintf(stderr, "   CRC1      : %08x\n\n", pkt_get_crc1(lastPktReceived));
-                     */
+                    fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i\tTime : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
+
                     // TODO : gérer ACK
                     // TODO : update window (for sender AND receiver : windox in nextPktToSend AND updates # packets that can be send
 
                     receiverWindowSize = pkt_get_window(lastPktReceived);
-
+                    fprintf(stderr, "Last seq : %i\n", pkt_get_seqnum(lastPktReceived));
                     pktACKed = stack_remove(sendingStack, (uint8_t) (pkt_get_seqnum(lastPktReceived) - 1));
 
-                    nextPktToSend = stack_send_pkt(sendingStack, pkt_get_seqnum(lastPktReceived));
+                    /*nextPktToSend = stack_send_pkt(sendingStack, pkt_get_seqnum(lastPktReceived));
                     if (nextPktToSend == NULL) {
                         perror("Next packet to send failed");
                         return EXIT_FAILURE;
-                    }
+                    }*/
 
                 } else if (pkt_get_type(lastPktReceived) == PTYPE_NACK) {
                     fprintf(stderr, "Just got a NACK :\n");
@@ -164,11 +160,11 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
                     receiverWindowSize = pkt_get_window(lastPktReceived);
 
-                    nextPktToSend = stack_send_pkt(sendingStack, pkt_get_seqnum(lastPktReceived));
+                    /*nextPktToSend = stack_send_pkt(sendingStack, pkt_get_seqnum(lastPktReceived));
                     if (nextPktToSend == NULL) {
                         perror("Next packet to send failed");
                         return EXIT_FAILURE;
-                    }
+                    }*/
 
                 } else {
                     perror("Received something else than ACK or NACK");
@@ -194,6 +190,29 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
         }
     } // while(!getOut && stack_size(sendingStack) > 0)
+
+    //TODO send STOP
+
+    pkt_t *packet = pkt_new();
+    pkt_set_type(packet, PTYPE_DATA);
+    pkt_set_window(packet, nextWindow);
+    pkt_set_seqnum(packet, 0);
+    pkt_set_timestamp(packet, 0);
+    pkt_set_length(packet, 0);
+
+    char *buffer = malloc(sizeof(packet));
+
+    int twelve = 12;
+    int encodeResult = pkt_encode(packet, buffer, (size_t *) &twelve);
+    if (encodeResult != PKT_OK) {
+        fprintf(stderr, "Unable to encode the stopping packet %i\n", encodeResult);
+    }
+    //sleep(1);
+    int sent = (int) send(sfd, buffer, (size_t) twelve, MSG_CONFIRM);
+    if (sent == -1) {
+        fprintf(stderr, "Unable to send the stop\n");
+    }
+    free(buffer);
 
     pkt_del(nextPktToSend);
     pkt_del(lastPktReceived);

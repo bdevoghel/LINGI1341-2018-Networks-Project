@@ -32,7 +32,7 @@ int socketFileDescriptor;
 int fOption = 0;
 
 uint8_t nextSeqnum;
-uint8_t nextWindow;
+extern uint8_t nextWindow;
 stack_t *sendingStack;
 
 /**
