@@ -50,19 +50,15 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         // Reset everything for new iteration of the loop
         memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE+16);
 
-        justRead = 0;
-        written = 0;
-
         FD_ZERO(&fdSet);
-        FD_SET(0, &fdSet);
         FD_SET(sfd, &fdSet);
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(sfd, &fdSet)) {
             packet = pkt_new();
-            justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
-            decodeResult = pkt_decode(sfdBuffer, justRead, packet);
+            justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
+            decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
 
             /*
             fprintf(stderr, "New packet ready to send :\n");
@@ -77,28 +73,38 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
             if (decodeResult == PKT_OK) {
                 if (pkt_get_seqnum(packet) == expectedSeqnum) {
-                    written = write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
+                    written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
                     pkt_del(packet);
                     if (written == -1) {
                         perror("Oooops, received packet but can't write it...");
                     }
-                    expectedSeqnum = (expectedSeqnum +1) % 256;
+                    perror("BEFORE SEQNUM UPDATE");
+                    expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
 
+                    perror("BEFORE NEW PACKET");
                     packet = pkt_new();
                     pkt_set_type(packet, PTYPE_ACK);
                     pkt_set_window(packet, window);
                     pkt_set_seqnum(packet, expectedSeqnum);
                     pkt_set_timestamp(packet, (uint32_t) time(NULL));
 
+                    perror("BEFORE MALLOC");
                     ackBuffer = malloc(sizeof(packet));
-                    encodeResult = pkt_encode(packet, ackBuffer, (size_t *) sizeof(packet));
+
+                    written = sizeof(packet);
+
+                    perror("BEFORE ENCODE");
+                    encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
                     if (encodeResult == E_NOMEM) {
                         fprintf(stderr, "Unable to encode the ACK with seqnum %i\n", expectedSeqnum);
                     }
-                    written = send(sfd, ackBuffer, sizeof(ackBuffer), MSG_CONFIRM);
+
+                    perror("BEFORE SEND");
+                    written = (int) send(sfd, ackBuffer, sizeof(ackBuffer), MSG_CONFIRM);
                     if (written == -1) {
                         fprintf(stderr, "Unable to end the ACK with seqnum %i\n", expectedSeqnum);
                     }
+                    free(ackBuffer);
 
                 } else if (pkt_get_seqnum(packet) - expectedSeqnum >= 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
                     stack_enqueue(receivingStack, packet);
