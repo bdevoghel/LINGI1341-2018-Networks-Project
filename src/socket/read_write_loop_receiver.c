@@ -67,7 +67,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
                     pkt_del(packet);
                     if (written == -1) {
-                        perror("Oooops, received packet but can't write it...");
+                        perror("Ooops, received packet but can't write it...");
                     }
                     expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
 
@@ -88,7 +88,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         fprintf(stderr, "Unable to encode the ACK with seqnum %i\n", expectedSeqnum);
                     }
 
-                    written = (int) send(sfd, ackBuffer, written, MSG_CONFIRM);
+                    written = (int) send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
                     if (written == -1) {
                         fprintf(stderr, "Unable to end the ACK with seqnum %i\n", expectedSeqnum);
                     }

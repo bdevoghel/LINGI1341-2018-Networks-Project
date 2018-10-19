@@ -58,7 +58,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     }
 
     int getOut = 0; // flag for loop
-    while(!getOut && stack_size(sendingStack) > 0) {
+    while(stack_size(sendingStack) > 0) {
         bufSize = 16 + MAX_PAYLOAD_SIZE;
 
         FD_ZERO(&fdSet);
