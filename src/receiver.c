@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     } else {
         outputFileDescriptor = STDOUT_FILENO;
     }
-    expectedSeqnum = 1;
+    expectedSeqnum = 0;
     window = MAX_WINDOW_SIZE;
 
     read_write_loop_receiver(socketFileDescriptor, receivingStack, outputFileDescriptor);
