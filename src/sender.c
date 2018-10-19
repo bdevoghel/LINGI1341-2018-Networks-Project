@@ -270,7 +270,6 @@ int read_file() {
         }
         set_nextWindow();
 
-        fprintf(stderr,"HERE in read_file(), creating packet with seqnum %i\n", nextSeqnum);
         statusCode = pkt_set_seqnum(packet, nextSeqnum);
         if (statusCode != PKT_OK) {
             return ooops("Error in pkt_set_seqnum()");

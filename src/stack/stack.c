@@ -148,7 +148,6 @@ pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
 }
 
 pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
-    fprintf(stderr,"HERE in stack_send_pkt() with seqnum %i\n", seqnum);
     /* not possible because seqnum loops from 0 to 255
     if(stack->first->seqnum > seqnum) {
         fprintf(stderr, "Node to send already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
