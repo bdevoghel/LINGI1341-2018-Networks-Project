@@ -38,38 +38,41 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
     //Unuseful but inginious needs to go through the warnings
     int justRead;
+    int written;
 
     pkt_t *packet = pkt_new();
     pkt_status_code decodeResult;
-    perror("BEFORE WHILE");
 
     while (getOut == 0) {
         // Reset everything for new iteration of the loop
         memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE+16);
 
         justRead = 0;
+        written = 0;
 
         FD_ZERO(&fdSet);
         FD_SET(0, &fdSet);
         FD_SET(sfd, &fdSet);
-        perror("BEFORE SELECT");
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(sfd, &fdSet)) {
 
             justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
-            perror("BEFORE DECODE");
             decodeResult = pkt_decode(sfdBuffer, justRead, packet);
-            perror("AFTER DECODE");
             if (decodeResult == PKT_OK) {
-                // Store packet into the buffer
-                perror("BEFORE SEQNUM");
-                if (pkt_get_seqnum(packet) - expectedSeqnum >= 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
-                    perror(pkt_get_payload(packet));
+                if (pkt_get_seqnum(packet) == expectedSeqnum) {
+                    written = write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
+                    if (written == -1) {
+                        perror("Oooops, received packet but can't write it...");
+                    }
+                    //TODO : send ACK
+                    expectedSeqnum = (expectedSeqnum +1) % 256;
+                } else if (pkt_get_seqnum(packet) - expectedSeqnum >= 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
                     stack_enqueue(receivingStack, packet);
+                    //TODO : send NACK
                 }
-            }else {
+            } else {
                 // TODO : send NACK
             }
 
