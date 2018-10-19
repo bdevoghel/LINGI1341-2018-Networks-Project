@@ -33,7 +33,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     fd_set fdSet;
 
     struct timeval timeout;
-    timeout.tv_sec = 10000;
+    timeout.tv_sec = 3;
     timeout.tv_usec = 0;
 
     //Unuseful but inginious needs to go through the warnings
@@ -87,7 +87,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     if (encodeResult == E_NOMEM) {
                         fprintf(stderr, "Unable to encode the ACK with seqnum %i\n", expectedSeqnum);
                     }
-
+                    //sleep(1);
                     written = (int) send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
                     if (written == -1) {
                         fprintf(stderr, "Unable to end the ACK with seqnum %i\n", expectedSeqnum);
