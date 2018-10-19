@@ -46,11 +46,11 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     char buf[bufSize];
 
     fd_set fdSet;
-
+/*
     struct timeval timeout1;
     timeout1.tv_sec = 10000;
     timeout1.tv_usec = 0;
-
+*/
     struct timeval timeout2;
     timeout2.tv_sec = 0;
     timeout2.tv_usec = 1;
@@ -65,11 +65,13 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     while(!getOut && stack_size(sendingStack) > 0) {
         bufSize = 16 + MAX_PAYLOAD_SIZE;
 
+        /*
         FD_ZERO(&fdSet);
         FD_SET(0, &fdSet);
         FD_SET(sfd, &fdSet);
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout1); // wait for sdf to be ready
+        */
 
         pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL));
         if (pktStatusCode != PKT_OK) {
