@@ -94,7 +94,6 @@ int main(int argc, char *argv[]) {
     }
 
     /* initialisation du buffer de reception et du premier numero de sequence attendu*/
-    perror("HEY");
     receivingStack = stack_init();
     if(receivingStack == NULL) {
         return ooops("Out of memory at stack creation");
@@ -105,7 +104,7 @@ int main(int argc, char *argv[]) {
     } else {
         outputFileDescriptor = STDOUT_FILENO;
     }
-    expectedSeqnum = 0;
+    expectedSeqnum = 1;
     window = MAX_WINDOW_SIZE;
 
     read_write_loop_receiver(socketFileDescriptor, receivingStack, outputFileDescriptor);

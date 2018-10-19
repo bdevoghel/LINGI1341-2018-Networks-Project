@@ -60,12 +60,27 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
             justRead = read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE);
             decodeResult = pkt_decode(sfdBuffer, justRead, packet);
+            perror("DECODED");
+            fprintf(stderr, "PKT_OK= %i\n"
+                            "E_TYPE= %i\n"
+                            "E_TR= %i\n"
+                            "E_LENGTH= %i\n"
+                            "E_CRC= %i\n"
+                            "E_WINDOW= %i\n"
+                            "E_SEQNUM= %i\n"
+                            "E_NOMEM= %i\n"
+                            "E_NOHEADER= %i\n"
+                            "E_UNCONSISTENT =%i", PKT_OK, E_TYPE, E_TR, E_LENGTH, E_CRC, E_WINDOW, E_SEQNUM, E_NOMEM, E_NOHEADER, E_UNCONSISTENT);
+            fprintf(stderr, "Just got decodeResult = %i and seqnum %i\n", decodeResult, pkt_get_seqnum(packet));
             if (decodeResult == PKT_OK) {
+                perror("PKT OK");
                 if (pkt_get_seqnum(packet) == expectedSeqnum) {
+                    perror("EXPECTED");
                     written = write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
                     if (written == -1) {
                         perror("Oooops, received packet but can't write it...");
                     }
+                    perror("AFTER WRITE");
                     //TODO : send ACK
                     expectedSeqnum = (expectedSeqnum +1) % 256;
                 } else if (pkt_get_seqnum(packet) - expectedSeqnum >= 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
