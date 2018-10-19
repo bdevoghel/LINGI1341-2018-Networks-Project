@@ -64,6 +64,12 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout); // wait for sdf to be ready
 
+        pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
+        if(pktStatusCode != PKT_OK) {
+            perror("Encode failed");
+            return EXIT_FAILURE;
+        }
+
         fprintf(stderr, "New packet ready to send :\n");
         fprintf(stderr, "   TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
         fprintf(stderr, "   Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
@@ -72,12 +78,6 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         fprintf(stderr, "   CRC1      : %08x\n", pkt_get_crc1(nextPktToSend));
         fprintf(stderr, "   Payload   : %s\n", pkt_get_payload(nextPktToSend));
         fprintf(stderr, "   CRC2      : %08x\n", pkt_get_crc2(nextPktToSend));
-
-        pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
-        if(pktStatusCode != PKT_OK) {
-            perror("Encode failed");
-            return EXIT_FAILURE;
-        }
 
         justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
         if((int)justWritten < 0) {
