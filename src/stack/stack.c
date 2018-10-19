@@ -29,8 +29,10 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
     } else {
         node_t *runner = stack->last;
         uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
+        int hasMoved = 0;
         while(pkt_seqnum <= runner->seqnum) {
             runner = runner->next;
+            hasMoved++;
         }
         // insert in front of runner
         newNode->next = runner->next;
@@ -42,7 +44,7 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         } else if(newNode->next == stack->first) {
             stack->first = newNode;
         }
-        if(newNode->next == stack->toSend) {
+        if(newNode->next == stack->toSend && hasMoved) {
             stack->toSend = newNode;
         }
     }

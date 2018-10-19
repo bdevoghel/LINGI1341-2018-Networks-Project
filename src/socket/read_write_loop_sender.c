@@ -25,7 +25,7 @@ pkt_t *pktACKed;
 size_t bufSize = 12 + MAX_PAYLOAD_SIZE + 4;
 
 int8_t senderWindowSize = 1;
-uint32_t RTlength = 3000; // 3 sec
+uint32_t RTlength = 3; // [s]
 
 /**
  * Goes over all already sent packets and signals if a RT timer has expired
@@ -50,19 +50,20 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     timeout.tv_sec = 10000;
     timeout.tv_usec = 0;
 
+    nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
+    if(nextPktToSend == NULL) {
+        perror("Next packet to send failed");
+        return EXIT_FAILURE;
+    }
+
     int getOut = 0; // flag for loop
-    while (!getOut && stack_size(sendingStack) > 0) {
+    while(!getOut && stack_size(sendingStack) > 0) {
         FD_ZERO(&fdSet);
         FD_SET(0, &fdSet);
         FD_SET(sfd, &fdSet);
 
         select(sfd + 1, &fdSet, NULL, NULL, &timeout); // wait for sdf to be ready
 
-        nextPktToSend = stack_send_pkt(sendingStack, stack_get_toSend_seqnum(sendingStack));
-        if(nextPktToSend == NULL) {
-            perror("Next packet to send failed");
-            return EXIT_FAILURE;
-        }
         fprintf(stderr, "New packet ready to send :\n");
         fprintf(stderr, "   TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
         fprintf(stderr, "   Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
@@ -125,7 +126,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
             }
         } else { // nothing received yet
             int wait = 1;
-            while(wait || senderWindowSize < 1) {
+            while(wait && senderWindowSize <= 0) {
                 statusCode = check_for_RT();
                 if(statusCode != 0) {
                     if(statusCode == 101) { // a RT has expired
@@ -134,10 +135,12 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                         return statusCode;
                     }
                 }
+
                 // wait until sender can receive something
-            }
-        }
-    }
+
+            } // while(wait && senderWindowSize <= 0)
+        } // if justRead
+    } // while(!getOut && stack_size(sendingStack) > 0)
     return EXIT_SUCCESS;
 }
 

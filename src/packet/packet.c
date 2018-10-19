@@ -130,6 +130,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     if(statusCode != PKT_OK) {
         return statusCode;
     }
+    // TODO calculate CRC1 with tr set to 0 !?
     uint32_t crc1Calculated = crc32(crc32(0L, Z_NULL, 0), (Bytef *) data+0, (uInt) sizeof(char)*8);
     if(pkt_get_crc1(pkt) != crc1Calculated) {
         return E_CRC;
@@ -170,6 +171,8 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
         return E_NOMEM;
     }
 
+    pkt_status_code statusCode;
+
     /*
      * Ecriture du header dans le buffer
      */
@@ -182,9 +185,13 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
     uint32_t pkt_timestamp = pkt_get_timestamp(pkt);
     memcpy(buf+4, &pkt_timestamp, sizeof(uint32_t));
 
-    // calculate CRC1 with tr set to 0 !?
+    // TODO calculate CRC1 with tr set to 0 !?
     uint32_t pktn_crc1 = htonl(crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+0, (uInt) sizeof(char)*8));
     //uint32_t pktn_crc1 = htonl(pkt_get_crc1(pkt));
+    statusCode = pkt_set_crc1(pkt, ntohl(pktn_crc1));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
     memcpy(buf+8, &pktn_crc1, sizeof(uint32_t));
 
     int charWritten = 3 * sizeof(uint32_t);
@@ -212,6 +219,10 @@ pkt_status_code pkt_encode(const pkt_t *pkt, char *buf, size_t *len) {
      */
     uint32_t pktn_crc2 = htonl(crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf+12, (uInt) pkt_get_length(pkt)));
     //uint32_t pktn_crc2 = htonl(pkt_get_crc2(pkt));
+    statusCode = pkt_set_crc2(pkt, ntohl(pktn_crc2));
+    if(statusCode != PKT_OK) {
+        return statusCode;
+    }
     if(pktn_crc2 != 0 && pkt_get_tr(pkt) == 0) {
         memcpy(buf+charWritten, &pktn_crc2, sizeof(uint32_t));
         charWritten += sizeof(uint32_t);
