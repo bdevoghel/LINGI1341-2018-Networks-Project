@@ -93,11 +93,17 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         }
         senderWindowSize --;
 
-        justRead = read(sfd, buf, bufSize);
-        if((int) justRead < 0) {
-            perror("Read failed");
+        fprintf(stderr, "HERE I am 1 ...\n");
+
+        justRead = recv(sfd, buf, bufSize, MSG_DONTWAIT);
+        /* TODO can we discard this ??
+        if((int) justRead != 0 && (int) justRead != EWOULDBLOCK && (int) justRead != EAGAIN) {
+            perror("Recv failed");
             return EXIT_FAILURE;
         }
+        */
+
+        fprintf(stderr, "HERE I am 2 ...\n");
         if((int) justRead > 0) { // ACK or NACK received
             pktStatusCode = pkt_decode(buf, justRead, lastPktReceived);
             if(pktStatusCode != PKT_OK) {
@@ -105,7 +111,14 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 return EXIT_FAILURE;
             }
 
+            fprintf(stderr, "HERE I am 3 ...\n");
             if(pkt_get_type(lastPktReceived) == PTYPE_ACK) {
+                fprintf(stderr, "Just got a ACK :\n");
+                fprintf(stderr, "   TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
+                fprintf(stderr, "   Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
+                fprintf(stderr, "   Length    : %04x\n", pkt_get_length(nextPktToSend));
+                fprintf(stderr, "   Timestamp : %08x\n", pkt_get_timestamp(nextPktToSend));
+                fprintf(stderr, "   CRC1      : %08x\n", pkt_get_crc1(nextPktToSend));
                 // TODO : gérer ACK
                 // TODO : update window (for sender AND receiver : windox in nextPktToSend AND updates # packets that can be send
 
@@ -118,6 +131,12 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 }
 
             } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
+                fprintf(stderr, "Just got a NACK :\n");
+                fprintf(stderr, "   TypeTrWin : %02x\n", (pkt_get_type(nextPktToSend)<<6)+(pkt_get_tr(nextPktToSend)<<5)+pkt_get_window(nextPktToSend));
+                fprintf(stderr, "   Seqnum    : %02x\n", pkt_get_seqnum(nextPktToSend));
+                fprintf(stderr, "   Length    : %04x\n", pkt_get_length(nextPktToSend));
+                fprintf(stderr, "   Timestamp : %08x\n", pkt_get_timestamp(nextPktToSend));
+                fprintf(stderr, "   CRC1      : %08x\n", pkt_get_crc1(nextPktToSend));
                 // TODO : gérer NACK
                 // TODO : update window (for sender AND receiver : windox in nextPktToSend AND updates # packets that can be send
 
@@ -131,6 +150,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 perror("Received something else than ACK or NACK");
                 return EXIT_FAILURE;
             }
+            fprintf(stderr, "HERE I am 4 ...\n");
         } else { // nothing received yet
             int wait = 1;
             while(wait && senderWindowSize <= 0) {
@@ -143,10 +163,12 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                     }
                 }
 
+                fprintf(stderr, "HERE I wait ...\n");
                 // wait until sender can receive something
 
             } // while(wait && senderWindowSize <= 0)
         } // if justRead
+        fprintf(stderr, "HERE I am 5 ...\n");
     } // while(!getOut && stack_size(sendingStack) > 0)
 
     pkt_del(nextPktToSend);
