@@ -98,7 +98,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
             }
 
-            if (pkt_get_seqnum(nextPktToSend) != 3 || i == 1) { //TODO : JUST FOR TESTING -> REMOVE !!!!!!!
+            if (pkt_get_seqnum(nextPktToSend) != 6 || i == 1) { //TODO : JUST FOR TESTING -> REMOVE !!!!!!!
                 fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
                         pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
                 justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
