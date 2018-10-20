@@ -60,7 +60,7 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
  * @param seqnum
  * @return : number of removed nodes
  */
-int *stack_remove_acked(stack_t *stack, uint8_t seqnum);
+int stack_remove_acked(stack_t *stack, uint8_t seqnum);
 
 /**
  * removes node with seqnum [seqnum] from [stack] without checking the toSend param
@@ -83,7 +83,7 @@ pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum);
  * @param stack
  * @return : [pkt] with [seqnum], NULL if seqnum not in [stack]
  */
-pkt_t stack_get_pkt(stack_t *stack, uint8_t seqnum);
+pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum);
 
 /**
  * indicates number of nodes in [stack]

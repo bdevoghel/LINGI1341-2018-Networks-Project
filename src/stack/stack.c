@@ -119,8 +119,21 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     return toReturn;
 }
 
-int *stack_remove_acked(stack_t *stack, uint8_t seqnum) {
-    // TODO do not forget to free
+int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
+    node_t *runner = stack->first;
+    int count = 0;
+    while(runner->seqnum < seqnum) {
+        node_t *toRemove = runner;
+        runner = runner->next;
+        stack->last->next = runner;
+        stack->first = runner;
+        runner->prev = stack->last;
+
+        pkt_del(toRemove->pkt);
+        node_free(toRemove);
+        count++;
+    }
+    return count;
 }
 
 pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
@@ -192,8 +205,12 @@ pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
     return toReturn;
 }
 
-pkt_t stack_get_pkt(stack_t *stack, uint8_t seqnum) {
-    // TODO : look at stack_get_toSend_seqnum
+pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {
+    node_t *runner = stack->first;
+    while (runner->seqnum != seqnum) {
+        runner = runner->next;
+    }
+    return runner->pkt;
 }
 
 size_t stack_size(stack_t *stack) {

@@ -144,7 +144,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
                     receiverWindowSize = pkt_get_window(lastPktReceived);
 
-                    uint8_t seqnumAcked = (pkt_get_seqnum(lastPktReceived);
+                    uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
                     int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked - 1);
                     fprintf(stderr, RED "\b~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
 
@@ -162,13 +162,14 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
                     receiverWindowSize = pkt_get_window(lastPktReceived);
 
-                    uint8_t seqnumAcked = (pkt_get_seqnum(lastPktReceived);
+                    uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
 
                     nextPktToSend = stack_get_pkt(sendingStack, seqnumAcked);
                     if(nextPktToSend == NULL) {
                         fprintf(stderr, "Next packet to send failed\n");
                         return EXIT_FAILURE;
                     }
+
                 } else {
                     fprintf(stderr, "Received something else than ACK or NACK\n");
                     return EXIT_FAILURE;
@@ -251,5 +252,5 @@ int check_for_RT() {
 
 void set_nextWindow() {
     // TODO implementation : set the next size of our senders's receiving buffer
-    nextWindow = 31; // always the same (no buffering problem on sender)
+    nextWindow = MAX_WINDOW_SIZE; // always the same (no buffering problem on sender)
 }
