@@ -107,9 +107,12 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             previousTimestamp = pkt_get_timestamp(packet);
             fprintf(stderr, CYN"Received %i\n"RESET, pkt_get_seqnum(packet));
             if (decodeResult == PKT_OK) {
-                if (pkt_get_type(packet) == PTYPE_DATA && pkt_get_length(packet) == 0) {
+                if (pkt_get_type(packet) == PTYPE_DATA && pkt_get_length(packet) == 0 && pkt_get_tr(packet) == 0) {
                     fprintf(stderr,"\n");
                     break;
+                }
+                if (pkt_get_tr(packet) == 1) {
+                    send_reply(sfd, PTYPE_NACK, previousTimestamp);
                 }
                 if (pkt_get_seqnum(packet) == expectedSeqnum) {
                     written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
