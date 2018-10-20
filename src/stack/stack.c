@@ -178,9 +178,9 @@ pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
 
     pkt_t *toReturn = runner->pkt;
     if (runner->next != runner && runner->next != stack->first) {
-        //if (stack->toSend == runner) {
+        if (stack->toSend == runner) {
             stack->toSend = runner->next;
-        //}
+        }
     } else {
         stack->toSend = NULL;
     }

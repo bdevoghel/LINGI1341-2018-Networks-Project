@@ -43,6 +43,11 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp) {
         pkt_del(packet);
         return EXIT_FAILURE;
     }
+    if (type == PTYPE_ACK) {
+        fprintf(stderr, MAG"Sent ACK with seqnum %i\n"RESET, expectedSeqnum);
+    }else{
+        fprintf(stderr, MAG"Sent NACK with seqnum %i\n"RESET, expectedSeqnum);
+    }
     ssize_t wrote = send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
     if (wrote == -1) {
         fprintf(stderr, "Unable to end the (N)ACK with seqnum %i\n", expectedSeqnum);
@@ -98,6 +103,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
 
             previousTimestamp = pkt_get_timestamp(packet);
+            fprintf(stderr, CYN"Received %i\n"RESET, pkt_get_seqnum(packet));
             if (decodeResult == PKT_OK) {
                 if (pkt_get_type(packet) == PTYPE_DATA && pkt_get_length(packet) == 0) {
                     fprintf(stderr,"\n");
@@ -141,7 +147,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 }
             } else {
                 pkt_del(packet);
-                // TODO : send NACK
+                replyResult = send_reply(sfd, PTYPE_NACK, previousTimestamp);
             }
 
 
