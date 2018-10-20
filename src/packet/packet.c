@@ -212,7 +212,7 @@ pkt_status_code pkt_encode(pkt_t *pkt, char *buf, size_t *len) {
     if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0) {
         memcpy(buf+12, pkt->payload, pkt_get_length(pkt));
     } else {
-        return E_UNCONSISTENT;
+        //return E_UNCONSISTENT;
     }
     charWritten += pkt_get_length(pkt);
 
@@ -229,10 +229,10 @@ pkt_status_code pkt_encode(pkt_t *pkt, char *buf, size_t *len) {
         memcpy(buf+charWritten, &pktn_crc2, sizeof(uint32_t));
         charWritten += sizeof(uint32_t);
     } else {
-        return E_UNCONSISTENT;
+        //return E_UNCONSISTENT;
     }
 
-    *len = (size_t) charWritten; // indiquer le nombre de chars ecrits
+    *len = charWritten; // indiquer le nombre de chars ecrits
 
     return PKT_OK;
 }

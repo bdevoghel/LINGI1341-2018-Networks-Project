@@ -88,7 +88,7 @@ void set_nextWindow();
  */
 int main(int argc, char *argv[]) {
     nextSeqnum = 0;
-    nextWindow = 31;
+    nextWindow = MAX_WINDOW_SIZE;
     sendingStack = NULL;
 
     int statusCode;

@@ -16,6 +16,36 @@
 uint8_t expectedSeqnum;
 uint8_t window;
 
+int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp) {
+    pkt_t *packet = pkt_new();
+    pkt_set_type(packet, type);
+    pkt_set_window(packet, window);
+    pkt_set_seqnum(packet, expectedSeqnum);
+    pkt_set_timestamp(packet, previousTimestamp);
+    pkt_set_length(packet, 0);
+
+    char *ackBuffer = malloc(sizeof(packet));
+
+    size_t written = 12;
+    pkt_status_code encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
+    if (encodeResult == E_NOMEM) {
+        fprintf(stderr, "Unable to encode the (N)ACK with seqnum %i\n", expectedSeqnum);
+        free(ackBuffer);
+        pkt_del(packet);
+        return EXIT_FAILURE;
+    }
+    ssize_t wrote = send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
+    if (wrote == -1) {
+        fprintf(stderr, "Unable to end the (N)ACK with seqnum %i\n", expectedSeqnum);
+        free(ackBuffer);
+        pkt_del(packet);
+        return EXIT_FAILURE;
+    }
+    free(ackBuffer);
+    pkt_del(packet);
+    return EXIT_SUCCESS;
+}
+
 /**
  * Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
@@ -43,8 +73,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     pkt_t *packet;
     pkt_status_code decodeResult;
 
-    char *ackBuffer;
-    int encodeResult;
+    int replyResult;
     uint32_t previousTimestamp;
 
     while (getOut == 0) {
@@ -76,30 +105,21 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     }
                     expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
 
-                    packet = pkt_new();
-                    pkt_set_type(packet, PTYPE_ACK);
-                    pkt_set_window(packet, window);
-                    pkt_set_seqnum(packet, expectedSeqnum);
-                    pkt_set_timestamp(packet, previousTimestamp);
-                    pkt_set_length(packet, 0);
 
-                    ackBuffer = malloc(sizeof(packet));
-
-                    written = 12;
-                    encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
-                    if (encodeResult == E_NOMEM) {
-                        fprintf(stderr, "Unable to encode the ACK with seqnum %i\n", expectedSeqnum);
+                    replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp);
+                    if (replyResult == EXIT_FAILURE) {
+                        fprintf(stderr, "Couldn't send ACK\n");
                     }
-                    //sleep(1);
-                    written = (int) send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
-                    if (written == -1) {
-                        fprintf(stderr, "Unable to end the ACK with seqnum %i\n", expectedSeqnum);
-                    }
-                    free(ackBuffer);
 
-                } else if (pkt_get_seqnum(packet) - expectedSeqnum >= 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
+                    //TODO : Write every others already received
+
+                } else if (pkt_get_seqnum(packet) - expectedSeqnum > 0 && pkt_get_seqnum(packet) - expectedSeqnum < window) {
                     stack_enqueue(receivingStack, packet);
-                    //TODO : send NACK
+                    window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
+                    replyResult = send_reply(sfd, PTYPE_NACK, previousTimestamp);
+                    if (replyResult == EXIT_FAILURE) {
+                        fprintf(stderr, "Couldn't send NACK\n");
+                    }
                 }
             } else {
                 pkt_del(packet);
