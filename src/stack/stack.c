@@ -64,18 +64,24 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
         return NULL;
     }*/
     node_t *runner = stack->first;
+    /*
+    // Code to print what's inside the stack
     int go = 1;
     fprintf(stderr, "Trying to remove %i and here is the stack content : ", seqnum);
     while (runner != stack->first || go == 1) {
         fprintf(stderr,"%i,", runner->seqnum);
+        runner = runner->next;
         go = 0;
     }
     fprintf(stderr, "\n");
 
+    runner = stack->first;
+     */
+
     while(runner->seqnum != seqnum) {
         runner = runner->next;
         if(runner == stack->first) {
-            fprintf(stderr, "Node to remove (%i) not in stack.\n", seqnum);
+            //fprintf(stderr, "Node to remove (%i) not in stack.\n", seqnum);
             return NULL;
         }
     }
@@ -171,8 +177,10 @@ pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
     }
 
     pkt_t *toReturn = runner->pkt;
-    if (runner->next != runner) {
-        stack->toSend = runner->next;
+    if (runner->next != runner && runner->next != stack->first) {
+        //if (stack->toSend == runner) {
+            stack->toSend = runner->next;
+        //}
     } else {
         stack->toSend = NULL;
     }
