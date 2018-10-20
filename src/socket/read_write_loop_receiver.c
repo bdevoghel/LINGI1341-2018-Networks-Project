@@ -13,6 +13,15 @@
 #include "read_write_loop_receiver.h"
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
 
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define BLU   "\x1B[34m"
+#define MAG   "\x1B[35m"
+#define CYN   "\x1B[36m"
+#define WHT   "\x1B[37m"
+#define RESET "\x1B[0m"
+
 uint8_t expectedSeqnum;
 uint8_t window;
 
@@ -53,9 +62,7 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp) {
  * @return: as soon as stdin signals EOF
  */
 void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDescriptor) {
-    if(outputFileDescriptor) {
-        //TODO REMOVE UNUSED
-    }
+
     int getOut = 0;
 
     char sfdBuffer[MAX_PAYLOAD_SIZE+16];
@@ -63,7 +70,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     fd_set fdSet;
 
     struct timeval timeout;
-    timeout.tv_sec = 3;
+    timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
     //Unuseful but inginious needs to go through the warnings
@@ -91,7 +98,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
 
             previousTimestamp = pkt_get_timestamp(packet);
-            //fprintf(stderr,"Decode result = %i with size %i", decodeResult, pkt_get_length(packet));
             if (decodeResult == PKT_OK) {
                 if (pkt_get_type(packet) == PTYPE_DATA && pkt_get_length(packet) == 0) {
                     fprintf(stderr,"\n");
@@ -105,6 +111,18 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     }
                     expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
 
+                    packet = stack_force_remove(receivingStack, expectedSeqnum);
+                    while (packet != NULL) {
+                        written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
+                        previousTimestamp = pkt_get_timestamp(packet);
+                        pkt_del(packet);
+                        if (written == -1) {
+                            perror("Can't print packet from stack");
+                        }
+                        expectedSeqnum++;
+                        window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
+                        packet = stack_force_remove(receivingStack, expectedSeqnum);
+                    }
 
                     replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp);
                     if (replyResult == EXIT_FAILURE) {

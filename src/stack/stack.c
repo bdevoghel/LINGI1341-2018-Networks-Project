@@ -63,12 +63,19 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
         fprintf(stderr, "Node to remove not yet in stack. Stack ends with seqnum %i\n", stack->last->seqnum);
         return NULL;
     }*/
-
     node_t *runner = stack->first;
+    int go = 1;
+    fprintf(stderr, "Trying to remove %i and here is the stack content : ", seqnum);
+    while (runner != stack->first || go == 1) {
+        fprintf(stderr,"%i,", runner->seqnum);
+        go = 0;
+    }
+    fprintf(stderr, "\n");
+
     while(runner->seqnum != seqnum) {
         runner = runner->next;
         if(runner == stack->first) {
-            fprintf(stderr, "Node to remove not in stack.\n");
+            fprintf(stderr, "Node to remove (%i) not in stack.\n", seqnum);
             return NULL;
         }
     }
@@ -109,10 +116,15 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
 pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
 
     node_t *runner = stack->first;
+
+    if (runner == NULL) {
+        return NULL;
+    }
+
     while(runner->seqnum != seqnum) {
         runner = runner->next;
         if(runner == stack->first) {
-            fprintf(stderr, "Node to remove not in stack.\n");
+            //fprintf(stderr, "Node to remove not in stack.\n");
             return NULL;
         }
     }
@@ -148,15 +160,6 @@ pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
 }
 
 pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
-    /* not possible because seqnum loops from 0 to 255
-    if(stack->first->seqnum > seqnum) {
-        fprintf(stderr, "Node to send already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
-        return NULL;
-    }
-    if(stack->last->seqnum < seqnum) {
-        fprintf(stderr, "Node to send not yet in stack. Stack ends with seqnum %i\n", stack->last->seqnum);
-        return NULL;
-    }*/
 
     node_t *runner = stack->first;
     while(runner->seqnum != seqnum) {

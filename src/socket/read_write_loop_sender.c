@@ -56,15 +56,13 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     char buf[bufSize];
 
     fd_set fdSet;
-/*
-    struct timeval timeout1;
-    timeout1.tv_sec = 10000;
-    timeout1.tv_usec = 0;
-*/
+
     struct timeval timeout2;
     timeout2.tv_sec = 0;
-    timeout2.tv_usec = 0;
+    timeout2.tv_usec = 500000;
     int i = 0;
+
+    size_t replySize = 12;
 
     //int getOut = 0; // flag for loop
     while(stack_size(sendingStack) > 0) {
@@ -95,9 +93,9 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
             return EXIT_FAILURE;
 
         }
-        fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
 
         if(pkt_get_seqnum(nextPktToSend) != 3 || i == 1) { //TODO : JUST FOR TESTING -> REMOVE !!!!!!!
+            fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
             justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
             if ((int) justWritten < 0) {
                 perror("Send failed");
@@ -106,7 +104,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         }else {
             i = 1;
         }
-        receiverWindowSize --;
+        receiverWindowSize--;
 
         FD_ZERO(&fdSet);
         FD_SET(sfd, &fdSet);
@@ -114,8 +112,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         select(sfd + 1, &fdSet, NULL, NULL, &timeout2);
 
         if (FD_ISSET(sfd, &fdSet)) {
-            bufSize = 12;
-            justRead = (size_t) read(sfd, buf, bufSize);
+            justRead = (size_t) read(sfd, buf, replySize);
             if((int) justRead < 0) {
                 perror("Recv failed");
                 return EXIT_FAILURE;
@@ -149,6 +146,32 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                     fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTime : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
 
                     nextPktToSend = stack_send_pkt(stack, pkt_get_seqnum(lastPktReceived));
+                    if(nextPktToSend == NULL) {
+                        perror("Next packet to send failed");
+                        return EXIT_FAILURE;
+                    }
+
+                    pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL));
+                    if (pktStatusCode != PKT_OK) {
+                        perror("Error in pkt_set_timestamp()");
+                        return EXIT_FAILURE;
+                    }
+
+                    pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
+                    fprintf(stderr, YEL "%i\n" RESET, pktStatusCode);
+                    if(pktStatusCode != PKT_OK) {
+                        perror("Encode failed");
+                        return EXIT_FAILURE;
+
+                    }
+
+                    fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
+                    justWritten = (size_t) send(sfd, buf, bufSize, MSG_CONFIRM);
+                    if ((int) justWritten < 0) {
+                        perror("Send failed");
+                        return EXIT_FAILURE;
+                    }
+
                     // TODO : gérer NACK
                     // TODO : update window (for sender AND receiver : windox in nextPktToSend AND updates # packets that can be send
 
@@ -185,7 +208,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
         }
     } // while(!getOut && stack_size(sendingStack) > 0)
 
-    //TODO send STOP
+
 
     pkt_t *packet = pkt_new();
     pkt_set_type(packet, PTYPE_DATA);

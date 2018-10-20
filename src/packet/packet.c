@@ -232,7 +232,7 @@ pkt_status_code pkt_encode(pkt_t *pkt, char *buf, size_t *len) {
         //return E_UNCONSISTENT;
     }
 
-    *len = charWritten; // indiquer le nombre de chars ecrits
+    *len = (size_t) charWritten; // indiquer le nombre de chars ecrits
 
     return PKT_OK;
 }
