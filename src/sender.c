@@ -117,6 +117,21 @@ int main(int argc, char *argv[]) {
     }
 
     /*
+     * Add terminating connexion packet
+     */
+    pkt_t *terminateConnexionPkt = pkt_new();
+    pkt_set_type(terminateConnexionPkt, PTYPE_DATA);
+    pkt_set_window(terminateConnexionPkt, 0);
+    pkt_set_seqnum(terminateConnexionPkt, nextSeqnum);
+    pkt_set_length(terminateConnexionPkt, 0);
+
+    statusCode = stack_enqueue(sendingStack, terminateConnexionPkt);
+    if (statusCode != 0) {
+        return ooops("Error in stack_enqueue()");
+    }
+
+
+    /*
      * Send packets (first 1 and then as much as receiver's window can accept) and wait for their ACK / NACK
      *
      * Algorithm :

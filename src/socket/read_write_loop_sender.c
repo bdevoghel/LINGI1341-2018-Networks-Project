@@ -99,7 +99,6 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
             return EXIT_FAILURE;
 
         }
-        lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
 
         if(pkt_get_seqnum(nextPktToSend) != 3 || i == 1) { //TODO : JUST FOR TESTING -> REMOVE !!!!!!!
 
@@ -113,6 +112,8 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 return EXIT_FAILURE;
             }
             receiverWindowSize--;
+            seqnumToSend++;
+            lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
 
 
         } else { //TODO : JUST FOR TESTING -> REMOVE !!!!!!!
@@ -140,22 +141,27 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
                 if(pkt_get_type(lastPktReceived) == PTYPE_ACK) {
 
-                    fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i\tTime : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
+                    fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
 
                     receiverWindowSize = pkt_get_window(lastPktReceived);
 
                     uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
-                    int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked - 1);
-                    fprintf(stderr, RED "\b~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
+                    int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
+                    fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
 
-                    seqnumToSend = seqnumAcked;
+                    if(seqnumAcked > seqnumToSend) {
+                        seqnumToSend = seqnumAcked;
+                    }
 
                     nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend);
                     if(nextPktToSend == NULL) {
+                        if(stack_size(sendingStack) == 0) {
+                            fprintf(stderr, "All packets are sent.\n");
+                            break;
+                        }
                         fprintf(stderr, "Next packet to send failed\n");
                         return EXIT_FAILURE;
                     }
-
                 } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
 
                     fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTime : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
@@ -193,14 +199,23 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
                 // wait until sender can receive something
 
-            } // while(wait && receiverWindowSize == 0)
+            } // while(receiverWindowSize == 0 && wait)
+
+            if(wait) {
+                nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend);
+                if(nextPktToSend == NULL) {
+                    fprintf(stderr, "Next packet to send failed\n");
+                    return EXIT_FAILURE;
+                }
+            }
         }
     } // while(stack_size(sendingStack) > 0)
 
 
+    fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
     /*
      * Terminating connexion TODO not waiting for ACK !!?? How to end properly the connexion ?
-     */
+     *
     pkt_t *terminateConnexionPkt = pkt_new();
     pkt_set_type(terminateConnexionPkt, PTYPE_DATA);
     pkt_set_window(terminateConnexionPkt, nextWindow);
@@ -213,6 +228,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     if(pktStatusCode != PKT_OK) {
         fprintf(stderr, "Unable to encode the terminating connexion packet : %i\n", pktStatusCode);
     }
+    pkt_del(terminateConnexionPkt);
 
     fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
 
@@ -220,11 +236,10 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     if((int) justWritten < 0) {
         fprintf(stderr, "Write failed\n");
         return EXIT_FAILURE;
-    }
+    }*/
 
     // TODO : delink, debound and deconnect connexion properly ?
 
-    pkt_del(terminateConnexionPkt);
     pkt_del(nextPktToSend);
     pkt_del(lastPktReceived);
 
@@ -235,13 +250,14 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
 int check_for_RT() {
     node_t *runner = sendingStack->first;
-    while(runner != sendingStack->toSend) {
-        if ((uint32_t) time(NULL) - pkt_get_timestamp(runner->pkt) > RTlength) {
-            nextPktToSend = stack_send_pkt(sendingStack, runner->seqnum);
-            if (nextPktToSend == NULL) {
-                perror("Next packet to send failed");
+    while(runner->seqnum <= lastEncodedSeqnum) {
+        if((uint32_t) (time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) {
+            nextPktToSend = runner->pkt;
+            if(nextPktToSend == NULL) {
+                fprintf(stderr, "Next packet to send failed when checking RT\n");
                 return EXIT_FAILURE;
             }
+            fprintf(stderr, "RT ran out on pkt with seqnum %i\n", runner->seqnum);
             return 101;
         } else {
             runner = runner->next;

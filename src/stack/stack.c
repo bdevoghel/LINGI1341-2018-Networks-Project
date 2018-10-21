@@ -133,6 +133,7 @@ int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
         node_free(toRemove);
         count++;
     }
+    stack->size -= count;
     return count;
 }
 
@@ -206,9 +207,16 @@ pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum){
 }
 
 pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {
+    if(stack->size == 0) {
+        return NULL;
+    }
+
     node_t *runner = stack->first;
     while (runner->seqnum != seqnum) {
         runner = runner->next;
+        if(runner == stack->first) {
+            return NULL;
+        }
     }
     return runner->pkt;
 }

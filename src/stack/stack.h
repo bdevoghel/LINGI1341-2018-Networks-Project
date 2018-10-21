@@ -55,7 +55,7 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt);
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 
 /**
- * removes all nodes from first untill seqnum [seqnum] from [stack]
+ * removes all nodes from first untill seqnum [seqnum] (not included) from [stack]
  * @param stack
  * @param seqnum
  * @return : number of removed nodes

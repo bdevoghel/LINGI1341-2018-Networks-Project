@@ -106,7 +106,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             fprintf(stderr, CYN"Received %i\n"RESET, pkt_get_seqnum(packet));
             if (decodeResult == PKT_OK) {
                 if (pkt_get_type(packet) == PTYPE_DATA && pkt_get_length(packet) == 0) {
-                    fprintf(stderr,"\n");
+                    fprintf(stderr,"Received end of transmission. Closing link.\n");
                     break;
                 }
                 if (pkt_get_seqnum(packet) == expectedSeqnum) {
