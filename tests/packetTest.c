@@ -36,13 +36,13 @@ void testEncodeAndDecodePacket(void) {
 
     pkt_decode(buf, len, pkt);
 
-    CU_ASSERT_EQUAL((int)(pkt_get_type(pkt)<<6)+(pkt_get_tr(pkt)<<5)+pkt_get_window(pkt), 64);
+    CU_ASSERT_EQUAL((int)(pkt_get_type(pkt)<<6)+(pkt_get_tr(pkt)<<5)+pkt_get_window(pkt), 95);
     CU_ASSERT_EQUAL((int)pkt_get_seqnum(pkt), 255);
     CU_ASSERT_EQUAL((uint32_t)pkt_get_timestamp(pkt), 4294967294);
     CU_ASSERT_FALSE(strcmp(pkt_get_payload(pkt), "zzabcdefzz"));
     CU_ASSERT_EQUAL((int)pkt_get_timestamp(pkt), -2);
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 4294967294);
-    CU_ASSERT_EQUAL((int)pkt_get_crc1(pkt), -815914717);
+    CU_ASSERT_EQUAL((int)pkt_get_crc1(pkt), 1791296164);
     CU_ASSERT_EQUAL((int)pkt_get_crc2(pkt), -1515869241);
     pkt_del(pkt);
     free(buf);

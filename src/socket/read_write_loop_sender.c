@@ -75,7 +75,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
     seqnumToSend = 0; // first pkt to send
 
-    int flag = 0;
+    //int flag = 0;
 
 
     while(stack_size(sendingStack) > 0) {
@@ -112,7 +112,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
             }
 
-        if ((pkt_get_seqnum(nextPktToSend) != 0 && pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 24) || flag == 3) { // TODO test data lost
+        //if ((pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 8 && pkt_get_seqnum(nextPktToSend) != 10) || flag == 3) { // TODO test data lost
             fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
                     pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
 
@@ -121,9 +121,9 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                 fprintf(stderr, "Write failed\n");
                 return EXIT_FAILURE;
             }
-        } else {
-            flag++;
-        }
+        //} else {
+        //    flag++;
+        //}
 
 
             receiverWindowSize--;
@@ -229,7 +229,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 int check_for_RT() {
     node_t *runner = sendingStack->first;
     while(runner->seqnum <= lastEncodedSeqnum) {
-        if((uint32_t) (time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) {
+        if((time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) {
             seqnumToSend = runner->seqnum;
             fprintf(stderr, "RT ran out on pkt with seqnum %i\n", runner->seqnum);
             hasRTed = 1;

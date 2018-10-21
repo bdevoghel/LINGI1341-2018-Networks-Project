@@ -68,6 +68,8 @@ int read_file();
  */
 void increment_nextSeqnum();
 
+int truncatedFile = 0;
+
 /**
  * sender permet de de realiser un transfer de donnees unidirectionnel et fiable
  *
@@ -166,9 +168,12 @@ int main(int argc, char *argv[]) {
     }
     fprintf(stderr, "Packets sent successfully.\n");
 
+    if (truncatedFile == 1) {
+        fprintf(stderr,
+                "IMPORTANT NOTICE ! AS SAID BEFORE, YOUR FILE SEEMS TO WEIGHT MORE THAN 255 * 512B AND OUR IMPLEMENTATION ISN'T READY FOR IT. THE EXCEEDING BYTES HAVEN'T BEEN SEND :( SORRY\n");
+    }
 
     close(socketFileDescriptor);
-    // TODO : terminate connexion
 
     stack_free(sendingStack);
 
@@ -294,7 +299,11 @@ int read_file() {
         if (statusCode != 0) {
             return ooops("Error in stack_enqueue()");
         }
-
+        if(nextSeqnum == 254) {
+            fprintf(stderr, "IMPORTANT NOTICE ! YOUR FILE SEEMS TO WEIGHT MORE THAN 255 * 512B AND OUR IMPLEMENTATION ISN'T READY FOR IT. THE EXCEEDING BYTES WON'T BE SENT :( SORRY\n");
+            truncatedFile = 1;
+            break;
+        }
         justRead = (int) read(fd, buf, MAX_PAYLOAD_SIZE);
         if (justRead < 0) {
             return ooops("Error when reading");
