@@ -177,7 +177,7 @@ size_t stack_size(stack_t *stack) {
 
 void stack_free(stack_t *stack) {
     while(stack->first != NULL) {
-        stack_remove(stack, stack->first->seqnum);
+        free(stack_remove(stack, stack->first->seqnum));
     }
     if(stack_size(stack) != 0) {
         fprintf(stderr, "Exiting stack_free() with stack_size != 0\n");
