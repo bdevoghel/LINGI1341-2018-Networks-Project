@@ -27,12 +27,13 @@
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
 #include "../stack/stack.h"
 
-/* TODO
- * Loop reading a socket and printing to stdout,
- * while reading stdin and writing to the socket
- * @sfd: The socket file descriptor. It is both bound and connected.
- * @return: as soon as stdin signals EOF
+/**
+ * Loop sending packets (read from [stack]) on a socket,
+ * while reading ACKs and NACKs from the socket
+ * @sfd : the socket file descriptor. It is both bound and connected.
+ * @stack : stack containing all the packets to send
+ * @return : as soon as connexion was terminated or earlier on fail
  */
-int read_write_loop_sender(const int sfd, stack_t *sendingStack);
+int read_write_loop_sender(const int sfd, stack_t *stack);
 
 #endif

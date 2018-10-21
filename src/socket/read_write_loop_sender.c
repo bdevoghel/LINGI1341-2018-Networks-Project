@@ -54,9 +54,10 @@ void set_nextWindow();
  * Loop sending packets (read from [stack]) on a socket,
  * while reading ACKs and NACKs from the socket
  * @sfd : the socket file descriptor. It is both bound and connected.
+ * @stack : stack containing all the packets to send
  * @return : as soon as connexion was terminated or earlier on fail
  */
-int read_write_loop_sender(int sfd, stack_t *stack) {
+int read_write_loop_sender(const int sfd, stack_t *stack) {
     sendingStack = stack;
     bufSize = 16 + MAX_PAYLOAD_SIZE;
     char buf[bufSize];
