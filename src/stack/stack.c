@@ -182,6 +182,8 @@ void stack_free(stack_t *stack) {
     if(stack_size(stack) != 0) {
         fprintf(stderr, "Exiting stack_free() with stack_size != 0\n");
     }
+
+    free(stack);
 }
 
 void node_free(node_t *node){

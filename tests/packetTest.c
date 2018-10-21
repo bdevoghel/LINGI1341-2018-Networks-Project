@@ -44,7 +44,8 @@ void testEncodeAndDecodePacket(void) {
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 4294967294);
     CU_ASSERT_EQUAL((int)pkt_get_crc1(pkt), -815914717);
     CU_ASSERT_EQUAL((int)pkt_get_crc2(pkt), -1515869241);
-
+    pkt_del(pkt);
+    free(buf);
 }
 
 
