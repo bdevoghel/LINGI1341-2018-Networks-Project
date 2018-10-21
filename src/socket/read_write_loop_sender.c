@@ -60,7 +60,7 @@ void set_nextWindow();
  * @stack : stack containing all the packets to send
  * @return : as soon as connexion was terminated or earlier on fail
  */
-int read_write_loop_sender(const int sfd, stack_t *stack) {
+int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
     sendingStack = stack;
     bufSize = 16 + MAX_PAYLOAD_SIZE;
     char buf[bufSize];
@@ -152,8 +152,11 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     receiverWindowSize = pkt_get_window(lastPktReceived);
 
                     uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
+                    if(numberOfPackets == seqnumAcked) { // ACKed terminating connexion packet
+                        break;
+                    }
                     int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
-                    fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n", amountRemoved);
+                    fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
 
                 } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
 
@@ -197,30 +200,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
 
 
     fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
-    /*
-     * Terminating connexion TODO not waiting for ACK !!?? How to end properly the connexion ?
-     *
-    pkt_t *terminateConnexionPkt = pkt_new();
-    pkt_set_type(terminateConnexionPkt, PTYPE_DATA);
-    pkt_set_window(terminateConnexionPkt, nextWindow);
-    pkt_set_seqnum(terminateConnexionPkt, lastEncodedSeqnum);
-    pkt_set_timestamp(terminateConnexionPkt, (uint32_t) time(NULL));
-    pkt_set_length(terminateConnexionPkt, 0);
-
-    size_t len = sizeof(terminateConnexionPkt);
-    pktStatusCode = pkt_encode(terminateConnexionPkt, buf, &len);
-    if(pktStatusCode != PKT_OK) {
-        fprintf(stderr, "Unable to encode the terminating connexion packet : %i\n", pktStatusCode);
-    }
-    pkt_del(terminateConnexionPkt);
-
-    fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
-
-    justWritten = (size_t) write(sfd, buf, len);
-    if((int) justWritten < 0) {
-        fprintf(stderr, "Write failed\n");
-        return EXIT_FAILURE;
-    }*/
 
     // TODO : delink, debound and deconnect connexion properly ?
 

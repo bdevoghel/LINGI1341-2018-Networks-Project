@@ -34,6 +34,6 @@
  * @stack : stack containing all the packets to send
  * @return : as soon as connexion was terminated or earlier on fail
  */
-int read_write_loop_sender(const int sfd, stack_t *stack);
+int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets);
 
 #endif

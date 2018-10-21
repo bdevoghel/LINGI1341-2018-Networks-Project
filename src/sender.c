@@ -151,7 +151,8 @@ int main(int argc, char *argv[]) {
      * socketFileDescriptor : socket connexion on wich messages are written
      * sendingStack         : stack in wich the packets to send are stored in increasing order
      */
-    statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack);
+    int numberOfPackets = (int) stack_size(sendingStack);
+    statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack, numberOfPackets);
     if(statusCode != 0) {
         return statusCode;
     }
