@@ -147,8 +147,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         fprintf(stderr, "Couldn't send ACK\n");
                     }
 
-                    //TODO : Write every others already received
-
                 } else if (pkt_get_seqnum(packet) - expectedSeqnum > 0 && pkt_get_seqnum(packet) - expectedSeqnum < MAX_WINDOW_SIZE) {
                     stack_enqueue(receivingStack, packet);
                     window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
@@ -157,7 +155,10 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         fprintf(stderr, "Couldn't send NACK\n");
                     }
                 } else {
-                    fprintf(stderr,"OOOPS\n");
+                    replyResult = send_reply(sfd, PTYPE_NACK, previousTimestamp);
+                    if (replyResult == EXIT_FAILURE) {
+                        fprintf(stderr, "Couldn't send NACK when out of sequence\n");
+                    }
                 }
             } else {
                 pkt_del(packet);
