@@ -72,8 +72,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     timeout.tv_sec = 0;
     timeout.tv_usec = 500000; // TODO smth else ??
 
-    int i = 0;
-
     seqnumToSend = 0; // first pkt to send
 
     while(stack_size(sendingStack) > 0) {
