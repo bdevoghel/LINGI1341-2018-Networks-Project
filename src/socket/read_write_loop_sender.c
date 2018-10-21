@@ -112,7 +112,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
             }
 
-        if ((pkt_get_seqnum(nextPktToSend) != 3 && pkt_get_seqnum(nextPktToSend) != 5 && pkt_get_seqnum(nextPktToSend) != 8) || flag == 3) { // TODO test data lost
+        if ((pkt_get_seqnum(nextPktToSend) != 0 && pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 24) || flag == 3) { // TODO test data lost
             fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
                     pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
 
