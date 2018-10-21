@@ -47,7 +47,7 @@ void testRemoveFromStack(void) {
 
     pkt_t *pkt = stack_remove(stack, 12);
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
-
+    free(pkt);
     stack_free(stack);
 }
 
