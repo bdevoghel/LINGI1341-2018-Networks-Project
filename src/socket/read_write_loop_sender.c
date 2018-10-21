@@ -71,14 +71,19 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
     int i = 0;
 
     seqnumToSend = 0; // first pkt to send
-    nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend);
-    if(nextPktToSend == NULL) {
-        fprintf(stderr, "Next packet to send failed\n");
-        return EXIT_FAILURE;
-    }
 
     while(stack_size(sendingStack) > 0) {
         bufSize = 16 + MAX_PAYLOAD_SIZE;
+
+        nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend);
+        if(nextPktToSend == NULL) {
+            if(stack_size(sendingStack) == 0) {
+                fprintf(stderr, "All packets are sent.\n");
+                break;
+            }
+            fprintf(stderr, "Next packet to send failed\n");
+            return EXIT_FAILURE;
+        }
 
         // setting correct timestamp and window of packet [nextPktToSend]
         pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL));
@@ -132,7 +137,7 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 lastPktReceived = pkt_new();
                 pktStatusCode = pkt_decode(buf, justRead, lastPktReceived);
                 if(pktStatusCode != PKT_OK) {
-                    fprintf(stderr, "Decode failed : %i\n", pktStatusCode);
+                    fprintf(stderr, "Decode failed : %i (there is a TODO here)\n", pktStatusCode);
                     // TODO if E_UNCONSISTENT, just discard and do not FAIL
                     return EXIT_FAILURE;
                 }
@@ -146,11 +151,14 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                     uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
                     int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
                     fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n", amountRemoved);
+
+
+
                     fprintf(stderr, "State of sendingStack : \n     size        : %li\n", stack_size(sendingStack));
                     node_t *runner = stack->first;
                     int loop = 1;
                     while(loop) {
-                        fprintf(stderr, "     node seqnum : %i\tpkt length  : %i\n", runner->seqnum, pkt_get_length(runner->pkt));
+                        fprintf(stderr, "     node seqnum : %i\t pkt length  : %i\t prev seqnum : %i\t next seqnum : %i\n", runner->seqnum, pkt_get_length(runner->pkt), runner->prev->seqnum, runner->next->seqnum);
                         runner = runner->next;
                         if(runner == stack->first) {
                             loop = 0;
@@ -159,32 +167,30 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                     fprintf(stderr, "\n");
 
 
-                    if(seqnumAcked > seqnumToSend) {
-                        seqnumToSend = seqnumAcked;
-                    }
 
-                    nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend);
-                    if(nextPktToSend == NULL) {
-                        if(stack_size(sendingStack) == 0) {
-                            fprintf(stderr, "All packets are sent.\n");
-                            break;
-                        }
-                        fprintf(stderr, "Next packet to send failed\n");
-                        return EXIT_FAILURE;
-                    }
                 } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
 
                     fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
 
                     receiverWindowSize = pkt_get_window(lastPktReceived);
 
-                    uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
+                    seqnumToSend = pkt_get_seqnum(lastPktReceived);
 
-                    nextPktToSend = stack_get_pkt(sendingStack, seqnumAcked);
-                    if(nextPktToSend == NULL) {
-                        fprintf(stderr, "Next packet to send failed\n");
-                        return EXIT_FAILURE;
+
+                    fprintf(stderr, "State of sendingStack : \n     size        : %li\n", stack_size(sendingStack));
+                    node_t *runner = stack->first;
+                    int loop = 1;
+                    while(loop) {
+                        fprintf(stderr, "     node seqnum : %i\t pkt length  : %i\t prev seqnum : %i\t next seqnum : %i\n", runner->seqnum, pkt_get_length(runner->pkt), runner->prev->seqnum, runner->next->seqnum);
+                        runner = runner->next;
+                        if(runner == stack->first) {
+                            loop = 0;
+                        }
                     }
+                    fprintf(stderr, "\n");
+
+
+
 
                 } else {
                     fprintf(stderr, "Received something else than ACK or NACK\n");
@@ -211,14 +217,8 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
             } // while(receiverWindowSize == 0 && wait)
 
-            if(wait) {
+            if(wait) { // has not waited
                 seqnumToSend++;
-
-                nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend);
-                if(nextPktToSend == NULL) {
-                    fprintf(stderr, "Next packet to send failed\n");
-                    return EXIT_FAILURE;
-                }
             }
         }
     } // while(stack_size(sendingStack) > 0)
@@ -264,11 +264,7 @@ int check_for_RT() {
     node_t *runner = sendingStack->first;
     while(runner->seqnum <= lastEncodedSeqnum) {
         if((uint32_t) (time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) {
-            nextPktToSend = stack_get_pkt(sendingStack, runner->seqnum);
-            if(nextPktToSend == NULL) {
-                fprintf(stderr, "Next packet to send failed when checking RT\n");
-                return EXIT_FAILURE;
-            }
+            seqnumToSend = runner->seqnum;
             fprintf(stderr, "RT ran out on pkt with seqnum %i\n", runner->seqnum);
             return 101;
         } else {

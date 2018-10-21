@@ -165,11 +165,8 @@ pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {
     }
 
     node_t *runner = stack->first;
-    while (runner->seqnum != seqnum) {
+    while(runner->seqnum < seqnum) {
         runner = runner->next;
-        if(runner == stack->first) {
-            return NULL;
-        }
     }
     return runner->pkt;
 }
