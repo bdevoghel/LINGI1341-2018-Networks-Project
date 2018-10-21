@@ -115,7 +115,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         ) {
                     expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
                     send_reply(sfd, PTYPE_ACK, previousTimestamp);
-                    fprintf(stderr,"\n");
                     break;
                 }
                 if (pkt_get_tr(packet) == 1) {
@@ -177,6 +176,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         }
 
     }
-    fprintf(stderr, GRN "\n=> CLOSING CONNECTION" RESET "\n\n");
+    fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
 
 }
