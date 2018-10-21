@@ -113,6 +113,8 @@ int main(int argc, char *argv[]) {
 
     fprintf(stderr, "Packets received successfully.\n");
 
+    close(socketFileDescriptor);
+
     return EXIT_SUCCESS;
 }
 
