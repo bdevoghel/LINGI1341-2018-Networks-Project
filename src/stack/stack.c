@@ -165,11 +165,8 @@ pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {
     }
 
     node_t *runner = stack->first;
-    while (runner->seqnum != seqnum) {
+    while(runner->seqnum < seqnum) {
         runner = runner->next;
-        if(runner == stack->first) {
-            return NULL;
-        }
     }
     return runner->pkt;
 }
@@ -180,7 +177,7 @@ size_t stack_size(stack_t *stack) {
 
 void stack_free(stack_t *stack) {
     while(stack->first != NULL) {
-        stack_remove(stack, stack->first->seqnum);
+        free(stack_remove(stack, stack->first->seqnum));
     }
     if(stack_size(stack) != 0) {
         fprintf(stderr, "Exiting stack_free() with stack_size != 0\n");
