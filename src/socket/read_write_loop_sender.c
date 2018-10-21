@@ -253,7 +253,7 @@ int check_for_RT() {
     node_t *runner = sendingStack->first;
     while(runner->seqnum <= lastEncodedSeqnum) {
         if((uint32_t) (time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) {
-            nextPktToSend = runner->pkt;
+            nextPktToSend = stack_get_pkt(sendingStack, runner->seqnum);
             if(nextPktToSend == NULL) {
                 fprintf(stderr, "Next packet to send failed when checking RT\n");
                 return EXIT_FAILURE;

@@ -71,14 +71,6 @@ int stack_remove_acked(stack_t *stack, uint8_t seqnum);
 pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum);
 
 /**
- * returns pkt with seqnum [seqnum] and advances toSend pointer
- * @param stack
- * @param seqnum
- * @return : pkt with seqnum [seqnum], NULL if failed
- */
-pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum);
-
-/**
  * returns pkt_t defined by [seqnum]
  * @param stack
  * @return : [pkt] with [seqnum], NULL if seqnum not in [stack]
