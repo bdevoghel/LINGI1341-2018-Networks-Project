@@ -28,7 +28,6 @@ typedef struct node {
 typedef struct stack {
     struct node *first;
     struct node *last;
-    struct node *toSend;
     size_t size;
 } stack_t;
 

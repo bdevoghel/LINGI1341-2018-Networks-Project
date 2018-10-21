@@ -111,13 +111,12 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
                 fprintf(stderr, "Write failed\n");
                 return EXIT_FAILURE;
             }
-            receiverWindowSize--;
-            lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
-
 
         } else { //TODO : JUST FOR TESTING -> REMOVE !!!!!!!
             i = 1;
         }
+        receiverWindowSize--;
+        lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
 
         FD_ZERO(&fdSet);
         FD_SET(sfd, &fdSet);
@@ -146,7 +145,19 @@ int read_write_loop_sender(int sfd, stack_t *stack) {
 
                     uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
                     int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
-                    fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
+                    fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n", amountRemoved);
+                    fprintf(stderr, "State of sendingStack : \n     size        : %li\n", stack_size(sendingStack));
+                    node_t *runner = stack->first;
+                    int loop = 1;
+                    while(loop) {
+                        fprintf(stderr, "     node seqnum : %i\tpkt length  : %i\n", runner->seqnum, pkt_get_length(runner->pkt));
+                        runner = runner->next;
+                        if(runner == stack->first) {
+                            loop = 0;
+                        }
+                    }
+                    fprintf(stderr, "\n");
+
 
                     if(seqnumAcked > seqnumToSend) {
                         seqnumToSend = seqnumAcked;

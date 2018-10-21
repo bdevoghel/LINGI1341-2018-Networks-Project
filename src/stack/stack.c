@@ -25,14 +25,11 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         newNode->prev = newNode;
         stack->first = newNode;
         stack->last = newNode;
-        stack->toSend = newNode;
     } else {
         node_t *runner = stack->last;
         uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
-        int hasMoved = 0;
-        while(pkt_seqnum <= runner->seqnum) {
-            runner = runner->next;
-            hasMoved++;
+        while(pkt_seqnum < runner->seqnum) {
+            runner = runner->prev;
         }
         // insert in front of runner
         newNode->next = runner->next;
@@ -43,9 +40,6 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
             stack->last = newNode;
         } else if(newNode->next == stack->first) {
             stack->first = newNode;
-        }
-        if(newNode->next == stack->toSend && hasMoved) {
-            stack->toSend = newNode;
         }
     }
     stack->size += 1;
@@ -68,14 +62,11 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     while(runner->seqnum != seqnum) {
         runner = runner->next;
         if(runner == stack->first) {
-            //fprintf(stderr, "Node to remove (%i) not in stack.\n", seqnum);
+            fprintf(stderr, "Node to remove (%i) not in stack.\n", seqnum);
             return NULL;
         }
     }
-    if(runner == stack->toSend) {
-        fprintf(stderr, "Node %i to remove has not yet been send\n", runner->seqnum);
-        return NULL;
-    }else if(runner == stack->first) {
+    if(runner == stack->first) {
         runner->prev->next = runner->next;
         runner->next->prev = runner->prev;
         stack->first = stack->first->next;
@@ -94,7 +85,6 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     if(stack->size == 0) {
         stack->first = NULL;
         stack->last = NULL;
-        stack->toSend = NULL;
     }
 
     runner->next = NULL;
@@ -158,7 +148,6 @@ pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
     if(stack->size == 0) {
         stack->first = NULL;
         stack->last = NULL;
-        stack->toSend = NULL;
     }
 
     runner->next = NULL;
@@ -191,11 +180,7 @@ size_t stack_size(stack_t *stack) {
 
 void stack_free(stack_t *stack) {
     while(stack->first != NULL) {
-        pkt_t *returnValue = stack_remove(stack, stack->first->seqnum);
-        if(returnValue == NULL) {
-            fprintf(stderr, "Could not free stack cleanly. Forcing free (important data can get lost !) ...\n");
-            stack->toSend = NULL;
-        }
+        stack_remove(stack, stack->first->seqnum);
     }
     if(stack_size(stack) != 0) {
         fprintf(stderr, "Exiting stack_free() with stack_size != 0\n");
