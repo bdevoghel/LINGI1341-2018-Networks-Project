@@ -32,7 +32,6 @@ int socketFileDescriptor;
 int fOption = 0;
 
 uint8_t nextSeqnum;
-extern uint8_t nextWindow;
 stack_t *sendingStack;
 
 /**
@@ -70,11 +69,6 @@ int read_file();
 void increment_nextSeqnum();
 
 /**
- * TODO : description
- */
-void set_nextWindow();
-
-/**
  * sender permet de de realiser un transfer de donnees unidirectionnel et fiable
  *
  * utilisation : "sender hostname port [-f X]"
@@ -88,7 +82,6 @@ void set_nextWindow();
  */
 int main(int argc, char *argv[]) {
     nextSeqnum = 0;
-    nextWindow = MAX_WINDOW_SIZE;
     sendingStack = NULL;
 
     int statusCode;
@@ -122,6 +115,21 @@ int main(int argc, char *argv[]) {
     if(statusCode != 0) {
         return statusCode;
     }
+
+    /*
+     * Add terminating connexion packet
+     */
+    pkt_t *terminateConnexionPkt = pkt_new();
+    pkt_set_type(terminateConnexionPkt, PTYPE_DATA);
+    pkt_set_window(terminateConnexionPkt, 0);
+    pkt_set_seqnum(terminateConnexionPkt, nextSeqnum);
+    pkt_set_length(terminateConnexionPkt, 0);
+
+    statusCode = stack_enqueue(sendingStack, terminateConnexionPkt);
+    if (statusCode != 0) {
+        return ooops("Error in stack_enqueue()");
+    }
+
 
     /*
      * Send packets (first 1 and then as much as receiver's window can accept) and wait for their ACK / NACK
@@ -264,12 +272,6 @@ int read_file() {
             return ooops("Error in pkt_set_tr()");
         }
 
-        statusCode = pkt_set_window(packet, nextWindow); // TODO set window at packet sending
-        if (statusCode != PKT_OK) {
-            return ooops("Error in pkt_set_window()");
-        }
-        set_nextWindow();
-
         statusCode = pkt_set_seqnum(packet, nextSeqnum);
         if (statusCode != PKT_OK) {
             return ooops("Error in pkt_set_seqnum()");
@@ -304,8 +306,4 @@ void increment_nextSeqnum() {
     } else {
         nextSeqnum += 1;
     }
-}
-
-void set_nextWindow() {
-    // TODO implementation : get next window size based on how many packets were send and are awaiting ACK
 }

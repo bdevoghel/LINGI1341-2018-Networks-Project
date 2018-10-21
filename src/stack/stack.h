@@ -28,7 +28,6 @@ typedef struct node {
 typedef struct stack {
     struct node *first;
     struct node *last;
-    struct node *toSend;
     size_t size;
 } stack_t;
 
@@ -54,6 +53,13 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt);
  */
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 
+/**
+ * removes all nodes from first untill seqnum [seqnum] (not included) from [stack]
+ * @param stack
+ * @param seqnum
+ * @return : number of removed nodes
+ */
+int stack_remove_acked(stack_t *stack, uint8_t seqnum);
 
 /**
  * removes node with seqnum [seqnum] from [stack] without checking the toSend param
@@ -64,19 +70,11 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum);
 
 /**
- * returns pkt with seqnum [seqnum] and advances toSend pointer
+ * returns pkt_t defined by [seqnum]
  * @param stack
- * @param seqnum
- * @return : pkt with seqnum [seqnum], NULL if failed
+ * @return : [pkt] with [seqnum], NULL if seqnum not in [stack]
  */
-pkt_t *stack_send_pkt(stack_t *stack, uint8_t seqnum);
-
-/**
- * returns seqnum of packet that has to be send
- * @param stack
- * @return : seqnum of pkt pointed by [toSend]
- */
-uint8_t stack_get_toSend_seqnum(stack_t *stack);
+pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum);
 
 /**
  * indicates number of nodes in [stack]
