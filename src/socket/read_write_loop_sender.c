@@ -155,7 +155,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                 if(pktStatusCode != PKT_OK) {
                     fprintf(stderr, "Decode failed : %i (there is a TODO here)\n", pktStatusCode);
                     // TODO if E_UNCONSISTENT, just discard and do not FAIL
-                    return EXIT_FAILURE;
+                    //return EXIT_FAILURE;
                 }
 
                 if(pkt_get_type(lastPktReceived) == PTYPE_ACK) {
@@ -187,12 +187,12 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
                 } else {
                     fprintf(stderr, "Received something else than ACK or NACK\n");
-                    return EXIT_FAILURE;
+                    //return EXIT_FAILURE;
                 }
                 free(lastPktReceived);
             } else { // justRead == 0
                 fprintf(stderr, "Nothing received but something expected\n");
-                return EXIT_FAILURE;
+                //return EXIT_FAILURE;
             }
         } else { // nothing received yet
             int wait = 1;
@@ -203,7 +203,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                     if(statusCode == 101) { // a RT has expired
                         wait = 0;
                     } else {
-                        return statusCode;
+                        //return statusCode;
                     }
                 }
 
