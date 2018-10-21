@@ -227,8 +227,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     pkt_del(nextPktToSend);
     pkt_del(lastPktReceived);
 
-    stack_free(sendingStack);
-
     return EXIT_SUCCESS;
 }
 

@@ -130,20 +130,18 @@ int main(int argc, char *argv[]) {
         return ooops("Error in stack_enqueue()");
     }
 
-
     /*
      * Send packets (first 1 and then as much as receiver's window can accept) and wait for their ACK / NACK
      *
      * Algorithm :
      * - send packet(s), start retransmission timer(s) (RT)
-     * - wait for ACK
+     * - wait for ACK                   OR            NACK                           OR            RTO
      * - receive ACK                                  - receive NACK (buffered but not complete)   - RT runs out
      * - adapt window                                 - resend seqnum received by NACK             - resend same packet
-     * - if possible send next packet                 - <==
-     *   else (window==0) wait for 1 RT and then send
-     * - <==
+     * - if (possible) send next packet                 - <==
+     *    else (window==0) wait for a RTO and then send
      *
-     * RT :
+     * RTO :
      * - init when packet send
      * - reset when packet resend
      * - when run out : resend packet and reset
