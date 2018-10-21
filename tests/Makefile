@@ -24,7 +24,7 @@ CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for ge
 # We have no libraries to link against except libc, but we want to keep the symbols for debugging
 LDFLAGS= -rdynamic
 
-SRC = stackTest.o
+SRC = stackTest.o packetTest.o
 
 # Default target
 all: clean $(SRC)
@@ -39,9 +39,12 @@ stackTest.o: stackTest.c
 	@$(CC) -c -o stackTest.o stackTest.c $(CFLAGS) $(LDFLAGS)
 	@$(CC) stackTest.o ../src/packet/packet.o ../src/stack/stack.o -o stackTest $(CFLAGS) $(LDFLAGS)
 
-
+packetTest.o: packetTest.c
+	@echo 'Building packetTest'
+	@$(CC) -c -o packetTest.o packetTest.c $(CFLAGS) $(LDFLAGS)
+	@$(CC) packetTest.o ../src/packet/packet.o -o packetTest $(CFLAGS) $(LDFLAGS)
 
 .PHONY: clean
 
 clean:
-	@rm -vf *.o stackTest
+	@rm -vf *.o stackTest packetTest
