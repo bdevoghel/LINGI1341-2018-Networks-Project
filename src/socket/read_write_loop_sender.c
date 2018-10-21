@@ -23,10 +23,12 @@ stack_t *sendingStack;
 uint8_t seqnumToSend;
 uint8_t lastEncodedSeqnum;
 
+// flags and return values of function calls
 size_t justWritten;
 size_t justRead;
 pkt_status_code pktStatusCode;
 int statusCode;
+int hasRTed;
 
 pkt_t *nextPktToSend;
 pkt_t *lastPktReceived;
@@ -84,6 +86,11 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
             }
             fprintf(stderr, "Next packet to send failed\n");
             return EXIT_FAILURE;
+        }
+
+        if(hasRTed) { // avoid go-back-n if RT has timed out for one packet
+            seqnumToSend = lastEncodedSeqnum;
+            hasRTed = 0; // reset
         }
 
         // setting correct timestamp and window of packet [nextPktToSend]
@@ -153,7 +160,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
                     fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n", amountRemoved);
 
-
+                    seqnumToSend++;
 
                     fprintf(stderr, "State of sendingStack : \n     size        : %li\n", stack_size(sendingStack));
                     node_t *runner = stack->first;
@@ -189,7 +196,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                         }
                     }
                     fprintf(stderr, "\n");
-
 
 
 
@@ -267,6 +273,7 @@ int check_for_RT() {
         if((uint32_t) (time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) {
             seqnumToSend = runner->seqnum;
             fprintf(stderr, "RT ran out on pkt with seqnum %i\n", runner->seqnum);
+            hasRTed = 1;
             return 101;
         } else {
             runner = runner->next;
