@@ -155,6 +155,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         fprintf(stderr, "Couldn't send NACK\n");
                     }
                 } else {
+                    fprintf(stderr, YEL"Packet %i out of sequence and not stored\n"RESET, pkt_get_seqnum(packet));
                     replyResult = send_reply(sfd, PTYPE_NACK, previousTimestamp);
                     if (replyResult == EXIT_FAILURE) {
                         fprintf(stderr, "Couldn't send NACK when out of sequence\n");

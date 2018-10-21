@@ -74,6 +74,9 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
     seqnumToSend = 0; // first pkt to send
 
+    int flag = 0;
+
+
     while(stack_size(sendingStack) > 0) {
         bufSize = 16 + MAX_PAYLOAD_SIZE;
 
@@ -107,13 +110,17 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
         }
 
-        fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
-                pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
+        if ((pkt_get_seqnum(nextPktToSend) != 3 && pkt_get_seqnum(nextPktToSend) != 5 && pkt_get_seqnum(nextPktToSend) != 8) || flag == 3) { // TODO test data lost
+            fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
+                    pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
 
-        justWritten = (size_t) write(sfd, buf, bufSize);
-        if((int) justWritten < 0) {
-            fprintf(stderr, "Write failed\n");
-            return EXIT_FAILURE;
+            justWritten = (size_t) write(sfd, buf, bufSize);
+            if ((int) justWritten < 0) {
+                fprintf(stderr, "Write failed\n");
+                return EXIT_FAILURE;
+            }
+        } else {
+            flag++;
         }
 
         receiverWindowSize--;
