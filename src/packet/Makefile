@@ -36,6 +36,8 @@ packet.o: packet.c
 	@echo 'Building packet'
 	@$(CC) -c -o packet.o packet.c $(CFLAGS) $(LDFLAGS)
 
+test:
+	@cd ../../tests/ && ./packetTest
 
 .PHONY: clean
 

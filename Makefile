@@ -55,6 +55,7 @@ create_tests:
 
 test: clean build create_tests
 	@cd src/stack && $(MAKE) -s test
+	@cd src/packet && $(MAKE) -s test
 
 # dépendances qui seront systématiquement reconstruites
 .PHONY: build clean rebuild

@@ -169,12 +169,10 @@ int process_options(int argc,char *argv[]) {
 
 
 int init_connexion() { // TODO return value ? what is the result ?
-    printf("aaa");
     if (hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }
 
-    printf("bbb");
     struct sockaddr_in6 address;
 
     const char *realAddressResult = real_address(hostname, &address);
@@ -187,7 +185,6 @@ int init_connexion() { // TODO return value ? what is the result ?
     if (socketFileDescriptor == -1) {
         return ooops("Error while creating the socket");
     }
-    printf("ccc");
     int waitForClientResult = wait_for_client(socketFileDescriptor);
     if (waitForClientResult == -1) {
         return ooops("Error while waiting for the client");
