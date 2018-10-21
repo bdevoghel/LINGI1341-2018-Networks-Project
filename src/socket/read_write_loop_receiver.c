@@ -111,7 +111,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         pkt_get_type(packet) == PTYPE_DATA &&
                         pkt_get_length(packet) == 0 &&
                         pkt_get_tr(packet) == 0 &&
-                        pkt_get_seqnum(packet) == expectedSeqnum
+                        pkt_get_seqnum(packet) == (expectedSeqnum + 1) % 256
                         ) {
                     send_reply(sfd, PTYPE_ACK, previousTimestamp);
                     fprintf(stderr,"\n");
