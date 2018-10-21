@@ -53,7 +53,7 @@ create_stack:
 create_tests:
 	@cd tests && $(MAKE) -s
 
-test: clean build create_tests
+tests: clean build create_tests
 	@cd src/stack && $(MAKE) -s test
 	@cd src/packet && $(MAKE) -s test
 
