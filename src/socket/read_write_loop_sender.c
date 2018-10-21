@@ -89,26 +89,26 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                     break;
                 }
                 fprintf(stderr, "Next packet to send failed\n");
-                return EXIT_FAILURE;
+                //return EXIT_FAILURE;
             }
 
             // setting correct timestamp and window of packet [nextPktToSend]
             pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL));
             if (pktStatusCode != PKT_OK) {
                 fprintf(stderr, "Error in pkt_set_timestamp()\n");
-                return EXIT_FAILURE;
+                //return EXIT_FAILURE;
             }
             statusCode = pkt_set_window(nextPktToSend, nextWindow);
             if (statusCode != PKT_OK) {
                 fprintf(stderr, "Error in pkt_set_window()\n");
-                return EXIT_FAILURE;
+                //return EXIT_FAILURE;
             }
             set_nextWindow();
 
             pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
             if (pktStatusCode != PKT_OK) {
                 fprintf(stderr, "Encode failed\n");
-                return EXIT_FAILURE;
+                //return EXIT_FAILURE;
 
             }
 
@@ -119,7 +119,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
             justWritten = (size_t) write(sfd, buf, bufSize);
             if ((int) justWritten < 0) {
                 fprintf(stderr, "Write failed\n");
-                return EXIT_FAILURE;
+                //return EXIT_FAILURE;
             }
         //} else {
         //    flag++;
@@ -156,40 +156,48 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                     fprintf(stderr, "Decode failed : %i (there is a TODO here)\n", pktStatusCode);
                     // TODO if E_UNCONSISTENT, just discard and do not FAIL
                     //return EXIT_FAILURE;
-                }
-
-                if(pkt_get_type(lastPktReceived) == PTYPE_ACK) {
-
-                    fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i\tTimestamp : %i\tStack_size : %i" RESET "\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived), (int) stack_size(sendingStack));
-
-                    receiverWindowSize = pkt_get_window(lastPktReceived);
-
-                    uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
-                    if(numberOfPackets == seqnumAcked) { // ACKed terminating connexion packet
-                        break;
-                    }
-                    int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
-                    fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
-
-                } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
-
-                    fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
-
-                    receiverWindowSize = pkt_get_window(lastPktReceived);
-
-                    seqnumToSend = pkt_get_seqnum(lastPktReceived);
-                    if(numberOfPackets == seqnumToSend) { // NACKed terminating connexion packet
-                        break;
-                    }
-                    stack_remove_acked(sendingStack, seqnumToSend); // remove all nodes prior to [seqnumToSend] (not included) from [sendingStack]
-
-                    hasNACKed = 1;
-
                 } else {
-                    fprintf(stderr, "Received something else than ACK or NACK\n");
-                    //return EXIT_FAILURE;
+
+                    if (pkt_get_type(lastPktReceived) == PTYPE_ACK) {
+
+                        fprintf(stderr,
+                                RED "~ ACK\tSeqnum : %i\tLength : %i\tTimestamp : %i\tStack_size : %i" RESET "\n",
+                                pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived),
+                                pkt_get_timestamp(lastPktReceived), (int) stack_size(sendingStack));
+
+                        receiverWindowSize = pkt_get_window(lastPktReceived);
+
+                        uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
+                        if (numberOfPackets == seqnumAcked) { // ACKed terminating connexion packet
+                            break;
+                        }
+                        int amountRemoved = stack_remove_acked(sendingStack,
+                                                               seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
+                        fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
+
+                    } else if (pkt_get_type(lastPktReceived) == PTYPE_NACK) {
+
+                        fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
+                                pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived),
+                                pkt_get_timestamp(lastPktReceived));
+
+                        receiverWindowSize = pkt_get_window(lastPktReceived);
+
+                        seqnumToSend = pkt_get_seqnum(lastPktReceived);
+                        if (numberOfPackets == seqnumToSend) { // NACKed terminating connexion packet
+                            break;
+                        }
+                        stack_remove_acked(sendingStack,
+                                           seqnumToSend); // remove all nodes prior to [seqnumToSend] (not included) from [sendingStack]
+
+                        hasNACKed = 1;
+
+                    } else {
+                        fprintf(stderr, "Received something else than ACK or NACK\n");
+                        //return EXIT_FAILURE;
+                    }
+                    free(lastPktReceived);
                 }
-                free(lastPktReceived);
             } else { // justRead == 0
                 fprintf(stderr, "Nothing received but something expected\n");
                 //return EXIT_FAILURE;
