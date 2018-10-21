@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
     if(statusCode != 0) {
         return statusCode;
     }
-    fprintf(stderr, "Packets sent successfully. Terminating transfer connexion.\n");
+    fprintf(stderr, "Packets sent successfully.\n");
 
 
     close(socketFileDescriptor);

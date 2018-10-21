@@ -175,4 +175,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         }
 
     }
+    fprintf(stderr, GRN "\n=> CLOSING CONNECTION" RESET "\n\n");
+
 }
