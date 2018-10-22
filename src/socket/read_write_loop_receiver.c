@@ -162,7 +162,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 }
             } else {
                 pkt_del(packet);
-                fprintf(stderr, "PACKET NOT OK");
+                fprintf(stderr, "PACKET NOT OK. DECODE RESULT = %i\n", decodeResult);
                 send_reply(sfd, PTYPE_NACK, previousTimestamp);
             }
             fprintf(stderr,"AFTER : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
