@@ -126,9 +126,10 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     if (written == -1) {
                         perror("Ooops, received packet but can't write it...");
                     }
-                    expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
 
-                    packet = stack_force_remove(receivingStack, expectedSeqnum);
+                    expectedSeqnum = (uint8_t) ((expectedSeqnum + 1) % 256);
+                    packet = stack_remove(receivingStack, expectedSeqnum);
+
                     while (packet != NULL) {
                         written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
                         previousTimestamp = pkt_get_timestamp(packet);
@@ -137,8 +138,9 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                             perror("Can't print packet from stack");
                         }
                         expectedSeqnum++;
+
                         window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
-                        packet = stack_force_remove(receivingStack, expectedSeqnum);
+                        packet = stack_remove(receivingStack, expectedSeqnum);
                     }
 
                     replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp);
@@ -162,7 +164,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 }
             } else {
                 pkt_del(packet);
-                fprintf(stderr, "PACKET NOT OK");
+                fprintf(stderr, "PACKET NOT OK : %i (4 == E_CRC)\n", decodeResult); // TODO : ca c'est ma faute --Brieuc
                 send_reply(sfd, PTYPE_NACK, previousTimestamp);
             }
             fprintf(stderr,"AFTER : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);

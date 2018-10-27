@@ -64,15 +64,13 @@ int init_connexion();
 /**
  * receiver permet de de realiser un transfer de donnees unidirectionnel et fiable
  *
- * utilisation : "receiver hostname port [-f X]"
+ * utilisation : "./receiver [-f X] hostname port"
  * il accepte la connexion depuis l'adresse [hostname] (:: pour toues les interfaces) avec le port [port] sur lequel il ecoute
  * si -f est present, les donnees seront imprimees sur le fichier X, sinon elles seront affichees sur stdout
  *
  * @param argc : 3 < argc < 5
- * @param argv : receiver hostname port [-f X]
- * @return : EXIT_SUCCESS si success
- *           EXIT_FAILURE si erreur d'execution OU arguments non coherents
- *           TODO enum erreurs possibles
+ * @param argv : receiver [-f X] hostname port
+ * @return 0 if everything went well
  */
 int main(int argc, char *argv[]) {
     int statusCode;
@@ -156,7 +154,7 @@ int process_options(int argc,char *argv[]) {
     }
 
     if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
-        fprintf(stderr, "%i option(s) read. Usage : \"receiver hostname port [-f X]\"\n", (1 + fOption*2 + hostnameSet + portSet));
+        fprintf(stderr, "%i option(s) read. Usage : \"receiver [-f X] hostname port\"\n", (1 + fOption*2 + hostnameSet + portSet));
         return EXIT_FAILURE;
     }
 

@@ -104,7 +104,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
             pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
             if (pktStatusCode != PKT_OK) {
-                fprintf(stderr, "Encode failed\n");
+                fprintf(stderr, "Encode failed %i\n", pktStatusCode);
                 //return EXIT_FAILURE;
 
             }
@@ -129,7 +129,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                 seqnumToSend++;
             }
 
-            pkt_del(nextPktToSend); // TODO sure bout that bro ?
         } else {
             waitForLastPktACK = 1;
         }

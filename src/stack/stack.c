@@ -49,6 +49,10 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
 
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
     node_t *runner = stack->first;
+    if(runner == NULL) {
+        return NULL;
+    }
+
     while(runner->seqnum != seqnum) {
         runner = runner->next;
         if(runner == stack->first) {
