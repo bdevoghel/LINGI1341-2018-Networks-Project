@@ -50,7 +50,7 @@ uint8_t nextWindow;
 int check_for_RT();
 
 /**
- * updates the window size of the sender to communicate to the receiver
+ * Updates the window size of the sender to communicate to the receiver
  */
 void set_nextWindow();
 
@@ -74,9 +74,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
     timeout.tv_usec = 500000; // TODO smth else ??
 
     seqnumToSend = 0; // first pkt to send
-
-    //int flag = 0;
-
 
     while(stack_size(sendingStack) > 0) {
         bufSize = 16 + MAX_PAYLOAD_SIZE;
@@ -112,7 +109,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
 
             }
 
-        //if ((pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 8 && pkt_get_seqnum(nextPktToSend) != 10) || flag == 3) { // TODO test data lost
             fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
                     pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
 
@@ -121,9 +117,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                 fprintf(stderr, "Write failed\n");
                 //return EXIT_FAILURE;
             }
-        //} else {
-        //    flag++;
-        //}
 
 
             receiverWindowSize--;
@@ -135,6 +128,8 @@ int read_write_loop_sender(const int sfd, stack_t *stack, int numberOfPackets) {
                 lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
                 seqnumToSend++;
             }
+
+            pkt_del(nextPktToSend); // TODO sure bout that bro ?
         } else {
             waitForLastPktACK = 1;
         }
