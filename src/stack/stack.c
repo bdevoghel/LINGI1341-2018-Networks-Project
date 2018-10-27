@@ -93,7 +93,7 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
 int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
     node_t *runner = stack->first;
     int count = 0;
-    while(runner->seqnum < seqnum) {
+    while(runner->seqnum != seqnum) {
         node_t *toRemove = runner;
         runner = runner->next;
         stack->last->next = runner;

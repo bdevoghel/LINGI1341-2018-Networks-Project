@@ -34,8 +34,6 @@ int fOption = 0;
 uint8_t nextSeqnum;
 stack_t *sendingStack;
 
-int truncatedFile = 0;
-
 /**
  * For printing error messages and returning EXIT_FAILURE easily
  * @param message : message to print on stderr
@@ -161,7 +159,7 @@ int main(int argc, char *argv[]) {
     int loop = 0;
     statusCode = -2;
     while(loop < 10 && statusCode == -2) {
-        statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack, (int) stack_size(sendingStack));
+        statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack);
         if(statusCode != 0) {
             if(statusCode == -2 && loop < 9) { // receiver was probably not launched yet
                 loop++;
@@ -173,10 +171,9 @@ int main(int argc, char *argv[]) {
     }
     fprintf(stderr, "Packets sent successfully.\n");
 
-    if (truncatedFile == 1) {
-        fprintf(stderr,
-                "IMPORTANT NOTICE ! AS SAID BEFORE, YOUR FILE SEEMS TO WEIGHT MORE THAN 255 * 512B AND OUR IMPLEMENTATION ISN'T READY FOR IT. THE EXCEEDING BYTES HAVEN'T BEEN SEND :( SORRY\n");
-    }
+    fprintf(stderr, GRN"=> CLOSING CONNECTION" RESET "\n\n");
+
+    // TODO : delink, debound and deconnect connexion properly ?
 
     close(socketFileDescriptor);
 
