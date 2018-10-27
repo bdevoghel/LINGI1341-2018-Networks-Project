@@ -28,7 +28,7 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
     } else {
         node_t *runner = stack->last;
         uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
-        while(pkt_seqnum < runner->seqnum) {
+        while(pkt_seqnum < runner->seqnum && !(runner->seqnum > 200 && pkt_seqnum < 100)) { // condition for separating two blocks of 256
             runner = runner->prev;
         }
         // insert in front of runner
@@ -48,16 +48,6 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
 }
 
 pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
-    /* not possible because seqnum loops from 0 to 255
-    if(stack->first->seqnum > seqnum) {
-        fprintf(stderr, "Node to remove already removed. Stack begins with seqnum %i\n", stack->first->seqnum);
-        return NULL;
-    }
-    if(stack->last->seqnum < seqnum) {
-        fprintf(stderr, "Node to remove not yet in stack. Stack ends with seqnum %i\n", stack->last->seqnum);
-        return NULL;
-    }*/
-
     node_t *runner = stack->first;
     while(runner->seqnum != seqnum) {
         runner = runner->next;
@@ -112,51 +102,6 @@ int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
     }
     stack->size -= count;
     return count;
-}
-
-pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum) {
-
-    node_t *runner = stack->first;
-
-    if (runner == NULL) {
-        return NULL;
-    }
-
-    while(runner->seqnum != seqnum) {
-        runner = runner->next;
-        if(runner == stack->first) {
-            //fprintf(stderr, "Node to remove not in stack.\n");
-            return NULL;
-        }
-    }
-    if(runner == stack->first) {
-        runner->prev->next = runner->next;
-        runner->next->prev = runner->prev;
-        stack->first = stack->first->next;
-
-    } else if(runner == stack->last) {
-        runner->prev->next = runner->next;
-        runner->next->prev = runner->prev;
-        stack->last = stack->last->prev;
-
-    } else {
-        runner->prev->next = runner->next;
-        runner->next->prev = runner->prev;
-    }
-    stack->size -= 1;
-
-    if(stack->size == 0) {
-        stack->first = NULL;
-        stack->last = NULL;
-    }
-
-    runner->next = NULL;
-    runner->prev = NULL;
-
-    pkt_t *toReturn = runner->pkt;
-    node_free(runner);
-
-    return toReturn;
 }
 
 pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {

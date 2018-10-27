@@ -46,7 +46,7 @@ stack_t *stack_init();
 int stack_enqueue(stack_t *stack, pkt_t *pkt);
 
 /**
- * removes node with seqnum [seqnum] from [stack]
+ * removes first node with seqnum [seqnum] from [stack] starting from [stack->first]
  * @param stack
  * @param seqnum
  * @return : ptr to [pkt] inside removed node, NULL if failed
@@ -62,15 +62,7 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum);
 int stack_remove_acked(stack_t *stack, uint8_t seqnum);
 
 /**
- * removes node with seqnum [seqnum] from [stack] without checking the toSend param
- * @param stack
- * @param seqnum
- * @return : ptr to [pkt] inside removed node, NULL if failed
- */
-pkt_t *stack_force_remove(stack_t *stack, uint8_t seqnum);
-
-/**
- * returns pkt_t defined by [seqnum]
+ * returns first pkt_t with seqnum [seqnum] starting from [stack->first]
  * @param stack
  * @return : [pkt] with [seqnum], NULL if seqnum not in [stack]
  */
