@@ -28,7 +28,7 @@ pkt_t* pkt_new() {
 
 void pkt_del(pkt_t *pkt) {
     if(pkt == NULL) {
-        fprintf(stderr, "Trying to pkt_del() although pkt is already NULL.\n");
+        //fprintf(stderr, "Trying to pkt_del() although pkt is already NULL.\n");
         return;
     }
     free(pkt->payload);

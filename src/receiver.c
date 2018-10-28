@@ -59,7 +59,7 @@ int process_options(int argc,char *argv[]);
 /**
  * TODO : description
  */
-int init_connexion();
+int init_connection();
 
 /**
  * receiver permet de de realiser un transfer de donnees unidirectionnel et fiable
@@ -84,9 +84,9 @@ int main(int argc, char *argv[]) {
     }
 
     /*
-     * Resolve the hostname, create socket and initializes connexion
+     * Resolve the hostname, create socket and initializes connection
      */
-    statusCode = init_connexion();
+    statusCode = init_connection();
     if(statusCode != 0) {
         return statusCode;
     }
@@ -168,7 +168,7 @@ int process_options(int argc,char *argv[]) {
 }
 
 
-int init_connexion() { // TODO return value ? what is the result ?
+int init_connection() { // TODO return value ? what is the result ?
     if (hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }

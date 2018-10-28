@@ -25,38 +25,56 @@
 uint8_t expectedSeqnum;
 uint8_t window;
 
+uint8_t lastNACKseqnum = 0;
+uint32_t lastNACKtimestamp = 0;
+int lastNACKtries = 0;
+
 int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp) {
-    pkt_t *packet = pkt_new();
-    pkt_set_type(packet, type);
-    pkt_set_window(packet, window);
-    pkt_set_seqnum(packet, expectedSeqnum);
-    pkt_set_timestamp(packet, previousTimestamp);
-    pkt_set_length(packet, 0);
+    if(expectedSeqnum == lastNACKseqnum && lastNACKtimestamp == time(NULL) && lastNACKtries > 3) {
+        fprintf(stderr, "Not sending NACK for seqnum %i. Waiting max 1 sec.\n", expectedSeqnum);
+    } else {
 
-    char *ackBuffer = malloc(sizeof(packet));
 
-    size_t written = 12;
-    pkt_status_code encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
-    if (encodeResult == E_NOMEM) {
-        fprintf(stderr, "Unable to encode the (N)ACK with seqnum %i\n", expectedSeqnum);
+        pkt_t *packet = pkt_new();
+        pkt_set_type(packet, type);
+        pkt_set_window(packet, window);
+        pkt_set_seqnum(packet, expectedSeqnum);
+        pkt_set_timestamp(packet, previousTimestamp);
+        pkt_set_length(packet, 0);
+
+        char *ackBuffer = malloc(sizeof(packet));
+
+        size_t written = 12;
+        pkt_status_code encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
+        if (encodeResult == E_NOMEM) {
+            fprintf(stderr, "Unable to encode the (N)ACK with seqnum %i\n", expectedSeqnum);
+            free(ackBuffer);
+            pkt_del(packet);
+            return EXIT_FAILURE;
+        }
+        if (type == PTYPE_ACK) {
+            fprintf(stderr, MAG"Sent ACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum, window);
+        }else{
+            fprintf(stderr, MAG"Sent NACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum,window);
+        }
+        ssize_t wrote = send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
+        if (wrote == -1) {
+            fprintf(stderr, "Unable to end the (N)ACK with seqnum %i\n", expectedSeqnum);
+            free(ackBuffer);
+            pkt_del(packet);
+            return EXIT_FAILURE;
+        }
         free(ackBuffer);
         pkt_del(packet);
-        return EXIT_FAILURE;
+
+        if(expectedSeqnum == lastNACKseqnum && lastNACKtimestamp == time(NULL)) {
+            lastNACKtries++;
+        } else {
+            lastNACKtries = 0;
+        }
+        lastNACKseqnum = expectedSeqnum;
+        lastNACKtimestamp = time(NULL);
     }
-    if (type == PTYPE_ACK) {
-        fprintf(stderr, MAG"Sent ACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum, window);
-    }else{
-        fprintf(stderr, MAG"Sent NACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum,window);
-    }
-    ssize_t wrote = send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
-    if (wrote == -1) {
-        fprintf(stderr, "Unable to end the (N)ACK with seqnum %i\n", expectedSeqnum);
-        free(ackBuffer);
-        pkt_del(packet);
-        return EXIT_FAILURE;
-    }
-    free(ackBuffer);
-    pkt_del(packet);
     return EXIT_SUCCESS;
 }
 

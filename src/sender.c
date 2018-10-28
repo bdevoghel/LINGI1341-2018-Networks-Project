@@ -55,7 +55,7 @@ int process_options(int argc,char *argv[]);
 /**
  * Resolves the hostname & creates a socket
  */
-int init_connexion();
+int init_connection();
 
 /**
  * Segmentation of [file] into [MAX_PAYLOAD_SIZE] buffers, stocked on [stack] with increasing seqnum
@@ -98,9 +98,9 @@ int main(int argc, char *argv[]) {
     }
 
     /*
-     * Resolve the hostname, create socket, link sender & receiver and initializes connexion
+     * Resolve the hostname, create socket, link sender & receiver and initializes connection
      */
-    statusCode = init_connexion();
+    statusCode = init_connection();
     if(statusCode != 0) {
         return statusCode;
     }
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
      */
 
     /*
-     * socketFileDescriptor : socket connexion on wich messages are written
+     * socketFileDescriptor : socket connection on wich messages are written
      * sendingStack         : stack in wich the packets to send are stored in increasing order
      */
     int loop = 0;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
 
     fprintf(stderr, GRN"=> CLOSING CONNECTION" RESET "\n\n");
 
-    // TODO : delink, debound and deconnect connexion properly ?
+    // TODO : delink, debound and deconnect connection properly ?
 
     close(socketFileDescriptor);
 
@@ -235,7 +235,7 @@ int process_options(int argc,char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-int init_connexion() {
+int init_connection() {
     if(hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }
@@ -326,15 +326,15 @@ int read_file(char *file, stack_t *stack) {
     close(fd);
 
     /*
-     * Add terminating connexion packet
+     * Add terminating connection packet
      */
-    pkt_t *terminateConnexionPkt = pkt_new();
-    pkt_set_type(terminateConnexionPkt, PTYPE_DATA);
-    pkt_set_window(terminateConnexionPkt, 0);
-    pkt_set_seqnum(terminateConnexionPkt, nextSeqnum);
-    pkt_set_length(terminateConnexionPkt, 0);
+    pkt_t *terminateconnectionPkt = pkt_new();
+    pkt_set_type(terminateconnectionPkt, PTYPE_DATA);
+    pkt_set_window(terminateconnectionPkt, 0);
+    pkt_set_seqnum(terminateconnectionPkt, nextSeqnum);
+    pkt_set_length(terminateconnectionPkt, 0);
 
-    int statusCode = stack_enqueue(stack, terminateConnexionPkt);
+    int statusCode = stack_enqueue(stack, terminateconnectionPkt);
     if (statusCode != 0) {
         return ooops("Error in stack_enqueue()");
     }

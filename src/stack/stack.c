@@ -30,7 +30,7 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
         while(pkt_seqnum < runner->seqnum && !(runner->seqnum > 200 && pkt_seqnum < 100)) { // condition for separating two blocks of 256
             runner = runner->prev;
-            if(runner == stack->last) {
+            if(runner == stack->first) {
                 break;
             }
         }
@@ -63,7 +63,15 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
             return NULL;
         }
     }
+
     if(runner == stack->first) {
+        if(stack->size <= 1) {
+            stack->first = NULL;
+            stack->last = NULL;
+            pkt_del(runner->pkt);
+            stack->size = 0;
+            return NULL;
+        }
         runner->prev->next = runner->next;
         runner->next->prev = runner->prev;
         stack->first = stack->first->next;
@@ -107,7 +115,7 @@ int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
         node_free(toRemove);
         count++;
         if(runner == stack->last) {
-            fprintf(stderr, "Break here\n");
+            fprintf(stderr, "Node to remove_acked (%i) not in stack.\n", seqnum);
             break;
         }
     }
@@ -121,12 +129,11 @@ pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {
     }
 
     node_t *runner = stack->first;
-    while(runner->seqnum < seqnum) {
+    while(runner->seqnum != seqnum) {
         runner = runner->next;
         if(runner == stack->first) {
-            break;
+            return NULL;
         }
-
     }
     return runner->pkt;
 }

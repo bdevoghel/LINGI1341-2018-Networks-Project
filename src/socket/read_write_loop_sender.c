@@ -16,6 +16,7 @@ uint8_t seqnumToSend;
 pkt_t *nextPktToSend;
 uint8_t lastEncodedSeqnum; // seqnum of last pkt transmitted successfully
 pkt_t *lastPktReceived;
+uint8_t lastSeqnumAcked;
 
 int packetsToSend;
 int packetsSent;
@@ -50,7 +51,7 @@ int check_for_RT();
 /**
  * Precesses a response (ACK or NACK) that can be read from the socket (sfd)
  * @param sfd : socket file descriptor to read from
- * @return : -1 if response discarded ; -2 if read failed ; EXIT_SUCCESS if everything went well
+ * @return : -1 if response discarded ; -2 if read failed (no connection yet) ; -3 if read failed (connection closed already) ; EXIT_SUCCESS if everything went well
  */
 int process_response(const int sfd);
 
@@ -64,7 +65,7 @@ void update_nextWindow();
  * while reading ACKs and NACKs from the socket
  * @sfd : the socket file descriptor. It is both bound and connected.
  * @stack : stack containing all the packets to send
- * @return : as soon as connexion was terminated or earlier on fail; -2 if read failed
+ * @return : as soon as connection was terminated or earlier on fail; -2 if read failed
  */
 int read_write_loop_sender(const int sfd, stack_t *stack) {
     // init variables
@@ -75,6 +76,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     packetsToSend = (int) stack_size(sendingStack);
     packetsSent = 0;
     seqnumToSend = 0; // first pkt to send
+    lastSeqnumAcked = 0; // none have been ACKed yet
 
     // variables for synchronous I/O multiplexing
     fd_set fdSet; // file descriptor set for select()
@@ -86,68 +88,80 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     while(stack_size(sendingStack) > 0 && !mainBreak ) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
-        if(packetsSent == packetsToSend - 1 && stack_size(sendingStack) == 2 && !pkt_get_timestamp(sendingStack->last->pkt)) {
+        if(packetsSent == packetsToSend - 1 && stack_size(sendingStack) > 1 && !pkt_get_timestamp(sendingStack->last->pkt) && !hasNACKed && !hasRTed) {
             waitForLastPktResponse = 1;
         } else {
+
+            if(seqnumToSend < lastSeqnumAcked) {
+                seqnumToSend = lastSeqnumAcked;
+            }
+
             nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
             if(nextPktToSend == NULL) {
                 fprintf(stderr, "Getting next packet to send failed\n");
-            }
+            } else {
 
-            // setting correct timestamp and window of [nextPktToSend]
-            pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL)); // set current time
-            statusCode = pkt_set_window(nextPktToSend, nextWindow);
-            if(statusCode != PKT_OK) {
-                fprintf(stderr, "Error in pkt_set_window()\n");
-            }
-            update_nextWindow();
+                // setting correct timestamp and window of [nextPktToSend]
+                pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL)); // set current time
+                statusCode = pkt_set_window(nextPktToSend, nextWindow);
+                if (statusCode != PKT_OK) {
+                    fprintf(stderr, "Error in pkt_set_window()\n");
+                }
+                update_nextWindow();
 
-            // encoding end sending pkt
-            pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
-            if(pktStatusCode != PKT_OK) {
-                fprintf(stderr, "Encode failed : status code = %i\n", pktStatusCode);
-                return EXIT_FAILURE; // cannot continue without causing problems later or
-            }
-
-            if ((pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 8 && pkt_get_seqnum(nextPktToSend) != 10) || flag == 3) { // TODO test data lost
-
-                fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
-                        pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend), pkt_get_timestamp(nextPktToSend));
-
-                justWritten = (size_t) write(sfd, buf, bufSize);
-                if((int) justWritten < 0) {
-                    fprintf(stderr, "Write failed\n");
+                // encoding end sending pkt
+                pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
+                if (pktStatusCode != PKT_OK) {
+                    fprintf(stderr, "Encode failed : status code = %i\n", pktStatusCode);
+                    return EXIT_FAILURE; // cannot continue without causing problems later or
                 }
 
-            } else {
-                flag++;
-            }
+                if ((pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 8 &&
+                     pkt_get_seqnum(nextPktToSend) != 10) || flag == 3) { // TODO test data lost
 
-            // updating values for next pkt to send
-            receiverWindowSize--;
-            if(hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
-                seqnumToSend = (lastEncodedSeqnum + 1) % 256;
-                hasRTed = 0; // reset
-                hasNACKed = 0; // reset
-            } else {
-                lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
-                seqnumToSend = (seqnumToSend + 1) % 256;
-                packetsSent++;
+                    fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
+                            pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
+                            pkt_get_timestamp(nextPktToSend));
+
+                    justWritten = (size_t) write(sfd, buf, bufSize);
+                    if ((int) justWritten < 0) {
+                        fprintf(stderr, "Write failed\n");
+                    }
+
+                } else {
+                    flag++;
+                    fprintf(stderr, GRN "=> DATA\tSeqnum : %i\t" RED "LOST" RESET "\n\n",
+                            pkt_get_seqnum(nextPktToSend));
+                }
+
+                // updating values for next pkt to send
+                receiverWindowSize--;
+                if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
+                    seqnumToSend = (lastEncodedSeqnum + 1) % 256;
+                    hasRTed = 0; // reset
+                    hasNACKed = 0; // reset
+                } else {
+                    lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
+                    seqnumToSend = (seqnumToSend + 1) % 256;
+                    packetsSent++;
+                }
             }
         }
 
         int enteredAtLeastOnce = 0;
-        while((receiverWindowSize == 0 && !mainBreak) || !enteredAtLeastOnce) { // wait until receiver can receive more packets or flagged
+        while((receiverWindowSize == 0 && !mainBreak) || enteredAtLeastOnce == 0) { // wait until receiver can receive more packets or flagged
             // reset [fdSet] and see if a ACK or NACK arrived
             FD_ZERO(&fdSet);
             FD_SET(sfd, &fdSet);
             select(sfd + 1, &fdSet, NULL, NULL, &timeout);
-            if(FD_ISSET(sfd, &fdSet) || waitForLastPktResponse) { // some response received
+            if(FD_ISSET(sfd, &fdSet) /*|| waitForLastPktResponse*/) { // some response received
                 statusCode = process_response(sfd);
                 if(statusCode == 1) { // last pkt (N)ACKed
                     mainBreak = 1;
                 } else if(statusCode == -2) { // read failed
                     return statusCode;
+                } else if(statusCode == -3) { // read failed
+                    return EXIT_SUCCESS;
                 }
                 break;
             }
@@ -161,7 +175,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         }
         fflush(stderr); // TODO remove for fluidity
     } // main while loop
-    fprintf(stderr, RED "~ Connexion termination ACKed" RESET "\n\n");
+    fprintf(stderr, RED "~ Connection termination ACKed" RESET "\n\n");
 
     // todo : check for state of stack
 
@@ -196,11 +210,17 @@ int process_response(const int sfd) {
 
     justRead = (size_t) read(sfd, buf, replySize);
     if((int) justRead < 0) {
-        fprintf(stderr, "Read failed. Possibely because receiver is not launched yet\n");
-        return -2; // READ FAILED probably because receiver isn't launched yet
+        if(packetsToSend == packetsSent) {
+            fprintf(stderr, "Read failed. Probably because receiver has already closed connection\n");
+            return -3;
+        } else {
+            fprintf(stderr, "Read failed. Possibely because receiver is not launched yet\n");
+            return -2;
+        }
     }
 
     if((int) justRead > 0) { // ACK or NACK received
+
         lastPktReceived = pkt_new();
         pktStatusCode = pkt_decode(buf, justRead, lastPktReceived);
         if(pktStatusCode != PKT_OK) {
@@ -216,12 +236,12 @@ int process_response(const int sfd) {
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
 
-            uint8_t seqnumAcked = pkt_get_seqnum(lastPktReceived);
-            if(seqnumAcked == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connexion packet
+            lastSeqnumAcked = pkt_get_seqnum(lastPktReceived);
+            if(lastSeqnumAcked == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
                 return 1;
             }
 
-            int amountRemoved = stack_remove_acked(sendingStack, seqnumAcked); // remove all nodes prior to [seqnumAcked] (not included) from [sendingStack]
+            int amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
             fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
 
         } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
@@ -231,7 +251,7 @@ int process_response(const int sfd) {
             receiverWindowSize = pkt_get_window(lastPktReceived);
 
             seqnumToSend = pkt_get_seqnum(lastPktReceived);
-            if (seqnumToSend == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // NACKed terminating connexion packet
+            if (seqnumToSend == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // NACKed terminating connection packet
                 return 1;
             }
 

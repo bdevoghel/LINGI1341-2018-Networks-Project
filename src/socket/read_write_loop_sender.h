@@ -41,7 +41,7 @@
  * while reading ACKs and NACKs from the socket
  * @sfd : the socket file descriptor. It is both bound and connected.
  * @stack : stack containing all the packets to send
- * @return : as soon as connexion was terminated or earlier on fail
+ * @return : as soon as connection was terminated or earlier on fail
  */
 int read_write_loop_sender(const int sfd, stack_t *stack);
 
