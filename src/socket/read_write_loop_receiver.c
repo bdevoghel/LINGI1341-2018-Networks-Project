@@ -166,6 +166,9 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 pkt_del(packet);
                 fprintf(stderr, "PACKET NOT OK : %i (4 == E_CRC)\n", decodeResult); // TODO : ca c'est ma faute --Brieuc
                 send_reply(sfd, PTYPE_NACK, previousTimestamp);
+                if(pkt_get_seqnum(packet) < expectedSeqnum) { // TODO : legit ?? modif apportee apres infinite de " Expect : 25	\n Received 0   \n PACKET NOT OK : 4 (4 == E_CRC)" recus
+                    break;
+                }
             }
             fprintf(stderr,"AFTER : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
 

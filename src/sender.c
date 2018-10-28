@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
      */
     int loop = 0;
     statusCode = -2;
-    while(loop < 10 && statusCode == -2) {
+    while(loop < 10 && statusCode == -2) { // tries at least 10 times
         statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack);
         if(statusCode != 0) {
             if(statusCode == -2 && loop < 9) { // receiver was probably not launched yet

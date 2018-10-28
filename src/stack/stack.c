@@ -30,6 +30,9 @@ int stack_enqueue(stack_t *stack, pkt_t *pkt) {
         uint8_t pkt_seqnum = pkt_get_seqnum(pkt);
         while(pkt_seqnum < runner->seqnum && !(runner->seqnum > 200 && pkt_seqnum < 100)) { // condition for separating two blocks of 256
             runner = runner->prev;
+            if(runner == stack->last) {
+                break;
+            }
         }
         // insert in front of runner
         newNode->next = runner->next;
@@ -103,6 +106,10 @@ int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
         pkt_del(toRemove->pkt);
         node_free(toRemove);
         count++;
+        if(runner == stack->last) {
+            fprintf(stderr, "Break here\n");
+            break;
+        }
     }
     stack->size -= count;
     return count;
@@ -116,6 +123,10 @@ pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum) {
     node_t *runner = stack->first;
     while(runner->seqnum < seqnum) {
         runner = runner->next;
+        if(runner == stack->first) {
+            break;
+        }
+
     }
     return runner->pkt;
 }
