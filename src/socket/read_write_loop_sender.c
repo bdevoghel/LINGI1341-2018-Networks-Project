@@ -116,22 +116,13 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     return EXIT_FAILURE; // cannot continue without causing problems later or
                 }
 
-                if ((pkt_get_seqnum(nextPktToSend) != 1 && pkt_get_seqnum(nextPktToSend) != 8 &&
-                     pkt_get_seqnum(nextPktToSend) != 10) || flag == 3) { // TODO test data lost
+                fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
+                        pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
+                        pkt_get_timestamp(nextPktToSend));
 
-                    fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
-                            pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
-                            pkt_get_timestamp(nextPktToSend));
-
-                    justWritten = (size_t) write(sfd, buf, bufSize);
-                    if ((int) justWritten < 0) {
-                        fprintf(stderr, "Write failed\n");
-                    }
-
-                } else {
-                    flag++;
-                    fprintf(stderr, GRN "=> DATA\tSeqnum : %i\t" RED "LOST" RESET "\n\n",
-                            pkt_get_seqnum(nextPktToSend));
+                justWritten = (size_t) write(sfd, buf, bufSize);
+                if ((int) justWritten < 0) {
+                    fprintf(stderr, "Write failed\n");
                 }
 
                 // updating values for next pkt to send

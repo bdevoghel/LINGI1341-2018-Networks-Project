@@ -30,7 +30,7 @@ uint32_t lastNACKtimestamp = 0;
 int lastNACKtries = 0;
 
 int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp) {
-    if(expectedSeqnum == lastNACKseqnum && lastNACKtimestamp == time(NULL) && lastNACKtries > 3) {
+    if(expectedSeqnum == lastNACKseqnum && lastNACKtimestamp == time(NULL) && lastNACKtries > 1) {
         fprintf(stderr, "Not sending NACK for seqnum %i. Waiting max 1 sec.\n", expectedSeqnum);
     } else {
 
