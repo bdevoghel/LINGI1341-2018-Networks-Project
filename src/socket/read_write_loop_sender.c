@@ -92,7 +92,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
             waitForLastPktResponse = 1;
         } else {
 
-            if(seqnumToSend < lastSeqnumAcked) {
+            if(seqnumToSend < lastSeqnumAcked && !(seqnumToSend <= MAX_WINDOW_SIZE && lastSeqnumAcked >= 255 - MAX_WINDOW_SIZE)) {
                 seqnumToSend = lastSeqnumAcked;
             }
 
@@ -116,9 +116,9 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     return EXIT_FAILURE; // cannot continue without causing problems later or
                 }
 
-                fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n",
+                fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tExpecting receiverWindow : %i" RESET "\n\n",
                         pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
-                        pkt_get_timestamp(nextPktToSend));
+                        pkt_get_timestamp(nextPktToSend), receiverWindowSize);
 
                 justWritten = (size_t) write(sfd, buf, bufSize);
                 if ((int) justWritten < 0) {
@@ -126,8 +126,9 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                 }
 
                 // updating values for next pkt to send
-                receiverWindowSize--;
-                if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
+                if(receiverWindowSize > 0) {
+                    receiverWindowSize--;
+                } else if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
                     seqnumToSend = (lastEncodedSeqnum + 1) % 256;
                     hasRTed = 0; // reset
                     hasNACKed = 0; // reset
@@ -167,8 +168,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         fflush(stderr); // TODO remove for fluidity
     } // main while loop
     fprintf(stderr, RED "~ Connection termination ACKed" RESET "\n\n");
-
-    // todo : check for state of stack
 
     pkt_del(nextPktToSend);
     pkt_del(lastPktReceived);
@@ -223,7 +222,7 @@ int process_response(const int sfd) {
 
         if(pkt_get_type(lastPktReceived) == PTYPE_ACK) {
 
-            fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i\tTimestamp : %i\tStack_size : %i" RESET "\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived), (int) stack_size(sendingStack));
+            fprintf(stderr, RED "~ ACK\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i\tStack_size : %li" RESET "\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived), stack_size(sendingStack));
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
 
@@ -237,7 +236,7 @@ int process_response(const int sfd) {
 
         } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
 
-            fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTimestamp : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived));
+            fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
 
