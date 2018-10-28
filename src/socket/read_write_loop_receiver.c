@@ -123,7 +123,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
 
             previousTimestamp = pkt_get_timestamp(packet);
-            fprintf(stderr, CYN"Received %i\n"RESET, pkt_get_seqnum(packet));
+            fprintf(stderr, CYN"Received %i\tTimestamp : %i\n"RESET, pkt_get_seqnum(packet), pkt_get_timestamp(packet));
             if (decodeResult == PKT_OK) {
                 if (
                         pkt_get_type(packet) == PTYPE_DATA &&

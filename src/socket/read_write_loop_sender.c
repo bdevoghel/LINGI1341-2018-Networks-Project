@@ -38,9 +38,7 @@ int hasNACKed = 0;
 int waitForLastPktResponse = 0;
 int mainBreak = 0;
 
-
-int flag = 0;
-
+int count = 0;
 
 /**
  * Goes over all already sent packets and signals if a RT timer has expired
@@ -89,6 +87,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
         if(packetsSent == packetsToSend - 1 && stack_size(sendingStack) > 1 && !pkt_get_timestamp(sendingStack->last->pkt) && !hasNACKed && !hasRTed) {
+            //fprintf(stderr, "Wait for last packet response\n");
             waitForLastPktResponse = 1;
         } else {
 
@@ -98,8 +97,12 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
 
             nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
             if(nextPktToSend == NULL) {
-                fprintf(stderr, "Getting next packet to send failed\n");
+                //fprintf(stderr, "Getting next packet to send failed\n");
             } else {
+
+                if(pkt_get_timestamp(nextPktToSend) == 0) {
+                    packetsSent++;
+                }
 
                 // setting correct timestamp and window of [nextPktToSend]
                 pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL)); // set current time
@@ -116,7 +119,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     return EXIT_FAILURE; // cannot continue without causing problems later or
                 }
 
-                fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tExpecting receiverWindow : %i" RESET "\n\n",
+                fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n",
                         pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
                         pkt_get_timestamp(nextPktToSend), receiverWindowSize);
 
@@ -124,18 +127,22 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                 if ((int) justWritten < 0) {
                     fprintf(stderr, "Write failed\n");
                 }
+                count++;
 
                 // updating values for next pkt to send
                 if(receiverWindowSize > 0) {
                     receiverWindowSize--;
-                } else if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
+                }
+                if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
                     seqnumToSend = (lastEncodedSeqnum + 1) % 256;
                     hasRTed = 0; // reset
                     hasNACKed = 0; // reset
                 } else {
                     lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
                     seqnumToSend = (seqnumToSend + 1) % 256;
-                    packetsSent++;
+                    /*if(seqnumToSend > lastSeqnumAcked + 30) {
+                        seqnumToSend = lastSeqnumAcked + 30;
+                    }*/
                 }
             }
         }
@@ -167,7 +174,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         }
         fflush(stderr); // TODO remove for fluidity
     } // main while loop
-    fprintf(stderr, RED "~ Connection termination ACKed" RESET "\n\n");
+    fprintf(stderr, RED "~ Connection termination ACKed. %i packets were sent." RESET "\n\n", count);
 
     pkt_del(nextPktToSend);
     pkt_del(lastPktReceived);
@@ -227,13 +234,13 @@ int process_response(const int sfd) {
             receiverWindowSize = pkt_get_window(lastPktReceived);
 
             lastSeqnumAcked = pkt_get_seqnum(lastPktReceived);
-            if(lastSeqnumAcked == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
-                return 1;
-            }
 
             int amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
             fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
 
+            if(lastSeqnumAcked == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
+                return 1;
+            }
         } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
 
             fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_length(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
@@ -241,11 +248,12 @@ int process_response(const int sfd) {
             receiverWindowSize = pkt_get_window(lastPktReceived);
 
             seqnumToSend = pkt_get_seqnum(lastPktReceived);
+
+            stack_remove_acked(sendingStack, seqnumToSend); // remove all nodes prior to [seqnumToSend] (not included) from [sendingStack]
+
             if (seqnumToSend == (packetsToSend % 256) && stack_size(sendingStack) == 1) { // NACKed terminating connection packet
                 return 1;
             }
-
-            stack_remove_acked(sendingStack, seqnumToSend); // remove all nodes prior to [seqnumToSend] (not included) from [sendingStack]
 
             hasNACKed = 1;
 
