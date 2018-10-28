@@ -111,13 +111,6 @@ int main(int argc, char *argv[]) {
 
     fprintf(stderr, "Packets received successfully.\n");
 
-    /* TODO good idea ? wait for read to fail (sfd closed by sender);
-    size_t justRead = 1;
-    while((int)justRead >= 0) {
-        justRead = (size_t) read(socketFileDescriptor, fileToWrite, 1);
-    }
-     */
-
     close(socketFileDescriptor);
     close(outputFileDescriptor);
 
