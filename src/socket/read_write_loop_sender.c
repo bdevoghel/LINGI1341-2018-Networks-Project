@@ -35,7 +35,6 @@ pkt_status_code pktStatusCode;
 int statusCode;
 int hasRTed = 0;
 int hasNACKed = 0;
-int waitForLastPktResponse = 0;
 int mainBreak = 0;
 
 int sentCount = 0;
@@ -93,9 +92,8 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     while(stack_size(sendingStack) > 0 && !mainBreak ) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
-        if(packetsSent == packetsToSend - 1 && stack_size(sendingStack) > 1 && !pkt_get_timestamp(sendingStack->last->pkt) && !hasNACKed && !hasRTed) {
+        if(pkt_get_timestamp(sendingStack->last->pkt) != 0 && !hasNACKed && !hasRTed) {
             fprintf(stderr, "Wait for last packet response\n");
-            waitForLastPktResponse = 1;
         } else {
 
             // check if seqnumToSend is out of receivers window
@@ -163,7 +161,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
             FD_ZERO(&fdSet);
             FD_SET(sfd, &fdSet);
             select(sfd + 1, &fdSet, NULL, NULL, &timeout);
-            if(FD_ISSET(sfd, &fdSet) /*|| waitForLastPktResponse*/) { // some response received TODO : del condition in if ??!
+            if(FD_ISSET(sfd, &fdSet)) { // some response received
                 statusCode = process_response(sfd);
                 if(statusCode == 1) { // last pkt (N)ACKed
                     mainBreak = 1;
