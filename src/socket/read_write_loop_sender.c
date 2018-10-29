@@ -54,6 +54,12 @@ int check_for_RT();
 int process_response(const int sfd);
 
 /**
+ * checks if [seqnum] is in range of [lastSeqnumAcked] (+31, taking loop around 256 into account)
+ * @return : 1 if true, 0 if false
+ */
+int isInRange(uint8_t seqnum);
+
+/**
  * Updates the window size of the sender to communicate to the receiver
  */
 void update_nextWindow();
@@ -91,8 +97,12 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
             waitForLastPktResponse = 1;
         } else {
 
-            if(seqnumToSend < lastSeqnumAcked && !(seqnumToSend <= MAX_WINDOW_SIZE && lastSeqnumAcked >= 255 - MAX_WINDOW_SIZE)) {
+            // check if seqnumToSend is out of receivers window
+            if(seqnumToSend < lastSeqnumAcked && lastSeqnumAcked <= 256 - MAX_WINDOW_SIZE) {
                 seqnumToSend = lastSeqnumAcked;
+            }
+            if(!isInRange(seqnumToSend)) {
+                seqnumToSend = (lastSeqnumAcked + MAX_WINDOW_SIZE - 1) % 256;
             }
 
             nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
@@ -140,9 +150,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                 } else {
                     lastEncodedSeqnum = pkt_get_seqnum(nextPktToSend);
                     seqnumToSend = (seqnumToSend + 1) % 256;
-                    /*if(seqnumToSend > lastSeqnumAcked + 30) {
-                        seqnumToSend = lastSeqnumAcked + 30;
-                    }*/
                 }
             }
         }
@@ -268,6 +275,14 @@ int process_response(const int sfd) {
         fprintf(stderr, "Nothing received but something expected\n");
     }
     return EXIT_SUCCESS;
+}
+
+int isInRange(uint8_t seqnum) {
+    int diff = seqnum - lastSeqnumAcked;
+    if (diff < 0) {
+        diff += 256;
+    }
+    return diff < MAX_WINDOW_SIZE;
 }
 
 void update_nextWindow() {
