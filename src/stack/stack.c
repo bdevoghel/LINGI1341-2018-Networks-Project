@@ -103,24 +103,20 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
 }
 
 int stack_remove_acked(stack_t *stack, uint8_t seqnum) {
-    node_t *runner = stack->first;
-    int count = 0;
-    while(runner->seqnum != seqnum) {
-        node_t *toRemove = runner;
-        runner = runner->next;
-        stack->last->next = runner;
-        stack->first = runner;
-        runner->prev = stack->last;
+    if(stack->size == 0) {
+        return 0;
+    }
 
-        pkt_del(toRemove->pkt);
-        node_free(toRemove);
+    int count = 0;
+
+    while(seqnum != stack->first->seqnum) {
+        pkt_del(stack_remove(stack, stack->first->seqnum));
         count++;
-        if(runner == stack->last) {
-            fprintf(stderr, "Node to remove_acked (%i) not in stack.\n", seqnum);
+        if(stack->size == 0) {
             break;
         }
     }
-    stack->size -= count;
+
     return count;
 }
 

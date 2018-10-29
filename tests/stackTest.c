@@ -60,8 +60,49 @@ void testRemoveFromStack(void) {
     stack_enqueue(stack, packet2);
 
     pkt_t *pkt = stack_remove(stack, 12);
+
     CU_ASSERT_EQUAL(pkt_get_timestamp(pkt), 123456789);
+    CU_ASSERT_EQUAL(stack_size(stack), 1);
+
     pkt_del(pkt);
+    stack_free(stack);
+}
+
+void testRemoveACKedFromStack(void) {
+    stack_t *stack = stack_init();
+
+    pkt_t *packet1 = pkt_new();
+    pkt_set_seqnum(packet1, 10);
+    pkt_set_timestamp(packet1, 100000000);
+
+    pkt_t *packet2 = pkt_new();
+    pkt_set_seqnum(packet2, 11);
+    pkt_set_timestamp(packet2, 110000000);
+
+    pkt_t *packet3 = pkt_new();
+    pkt_set_seqnum(packet3, 12);
+    pkt_set_timestamp(packet3, 120000000);
+
+    pkt_t *packet4 = pkt_new();
+    pkt_set_seqnum(packet4, 13);
+    pkt_set_timestamp(packet4, 130000000);
+
+    pkt_t *packet5 = pkt_new();
+    pkt_set_seqnum(packet5, 14);
+    pkt_set_timestamp(packet5, 140000000);
+
+    stack_enqueue(stack, packet1);
+    stack_enqueue(stack, packet2);
+    stack_enqueue(stack, packet3);
+    stack_enqueue(stack, packet4);
+    stack_enqueue(stack, packet5);
+
+    int count = stack_remove_acked(stack, 13);
+    CU_ASSERT_EQUAL(count, 3);
+    CU_ASSERT_EQUAL(stack_size(stack), 2);
+
+    CU_ASSERT_EQUAL(pkt_get_timestamp(stack->first->pkt), 130000000);
+
     stack_free(stack);
 }
 
@@ -118,6 +159,8 @@ int main()
             NULL == CU_add_test(pSuite, "Test insert into stack\n", testInsertIntoStack)
             ||
             NULL == CU_add_test(pSuite, "Test remove from stack\n", testRemoveFromStack)
+            ||
+            NULL == CU_add_test(pSuite, "Test removeACKed from stack\n", testRemoveACKedFromStack)
             ||
             NULL == CU_add_test(pSuite, "Test is in stack\n", testIsInStack)
         )
