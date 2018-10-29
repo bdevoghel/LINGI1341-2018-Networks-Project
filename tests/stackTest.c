@@ -23,11 +23,25 @@
 void testInsertIntoStack(void) {
     stack_t *stack = stack_init();
 
-    pkt_t *packet = pkt_new();
-    stack_enqueue(stack, packet);
-    stack_enqueue(stack, packet);
+    pkt_t *packet1 = pkt_new();
+    pkt_set_seqnum(packet1, 10);
+    pkt_set_timestamp(packet1, 987654321);
+    pkt_t *packet2 = pkt_new();
+    pkt_set_seqnum(packet2, 12);
+    pkt_set_timestamp(packet2, 123456789);
+    pkt_t *packet3 = pkt_new();
+    pkt_set_seqnum(packet3, 11);
+    pkt_set_timestamp(packet3, 565156151);
 
-    CU_ASSERT_EQUAL(stack_size(stack), 2);
+    stack_enqueue(stack, packet1);
+    stack_enqueue(stack, packet2);
+    stack_enqueue(stack, packet3);
+
+    CU_ASSERT_EQUAL(stack_size(stack), 3);
+    CU_ASSERT_EQUAL(stack->first->seqnum, 10);
+    CU_ASSERT_EQUAL(stack->first->next->seqnum, 11);
+    CU_ASSERT_EQUAL(stack->first->next->next->seqnum, 12);
+
 
     stack_free(stack);
 }

@@ -75,6 +75,8 @@ pkt_t *stack_get_pkt(stack_t *stack, uint8_t seqnum);
  */
 size_t stack_size(stack_t *stack);
 
+void print_stack(stack_t * stack);
+
 int is_in_stack(stack_t *stack, uint8_t seqnum);
 
 /**

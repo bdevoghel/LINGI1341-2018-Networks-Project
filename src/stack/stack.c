@@ -68,9 +68,10 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
         if(stack->size <= 1) {
             stack->first = NULL;
             stack->last = NULL;
-            pkt_del(runner->pkt);
+            pkt_t *pack = runner->pkt;
+            node_free(runner);
             stack->size = 0;
-            return NULL;
+            return pack;
         }
         runner->prev->next = runner->next;
         runner->next->prev = runner->prev;
@@ -171,4 +172,13 @@ int is_in_stack(stack_t *stack, uint8_t seqnum) {
     }
     return 0;
 
+}
+
+void print_stack(stack_t *stack) {
+    node_t *runner = stack->first;
+    for (int i=1; i <= (int)stack_size(stack); i++) {
+        fprintf(stderr, "%i -> ", runner->seqnum);
+        runner = runner->next;
+    }
+    fprintf(stderr,"END\n");
 }
