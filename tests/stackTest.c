@@ -51,6 +51,26 @@ void testRemoveFromStack(void) {
     stack_free(stack);
 }
 
+void testIsInStack(void) {
+    stack_t *stack = stack_init();
+
+    pkt_t *packet1 = pkt_new();
+    pkt_set_seqnum(packet1, 10);
+    pkt_set_timestamp(packet1, 987654321);
+    pkt_t *packet2 = pkt_new();
+    pkt_set_seqnum(packet2, 12);
+    pkt_set_timestamp(packet2, 123456789);
+
+    stack_enqueue(stack, packet1);
+    stack_enqueue(stack, packet2);
+
+    CU_ASSERT_TRUE(is_in_stack(stack, 10));
+    CU_ASSERT_TRUE(is_in_stack(stack, 12));
+    CU_ASSERT_FALSE(is_in_stack(stack, 8));
+    CU_ASSERT_FALSE(is_in_stack(stack, 15));
+    stack_free(stack);
+}
+
 
 int init_suite1(void){
     return 0;
@@ -84,6 +104,8 @@ int main()
             NULL == CU_add_test(pSuite, "Test insert into stack\n", testInsertIntoStack)
             ||
             NULL == CU_add_test(pSuite, "Test remove from stack\n", testRemoveFromStack)
+            ||
+            NULL == CU_add_test(pSuite, "Test is in stack\n", testIsInStack)
         )
     {
         CU_cleanup_registry();

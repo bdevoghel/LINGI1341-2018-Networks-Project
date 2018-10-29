@@ -156,3 +156,19 @@ void stack_free(stack_t *stack) {
 void node_free(node_t *node){
     free(node);
 }
+
+int is_in_stack(stack_t *stack, uint8_t seqnum) {
+    if (stack == NULL || stack->size == 0) {
+        return 0;
+    }
+
+    node_t *runner = stack->first;
+    for (int i = 0; i < (int)stack_size(stack); i++) {
+        if (runner->seqnum == seqnum) {
+            return 1;
+        }
+        runner = runner->next;
+    }
+    return 0;
+
+}
