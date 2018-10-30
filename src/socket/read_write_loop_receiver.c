@@ -82,7 +82,7 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp, uint8_t seqnu
  * @return: as soon as stdin signals EOF
  */
 void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDescriptor) {
-
+    // TODO : Jitter does some weird things with the stack... Packets are not always inserted in the right order into the stack
     char sfdBuffer[MAX_PAYLOAD_SIZE+16];
 
     fd_set fdSet;
@@ -139,7 +139,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     if (written == -1) {
                         perror("Ooops, received packet but can't write it...");
                     }
-                    print_stack(receivingStack);
 
                     incrementSeqnum();
 
@@ -156,13 +155,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
                         window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
                         packet = stack_remove(receivingStack, expectedSeqnum);
-                        if (packet == NULL) {
-                            fprintf(stderr,"%i : I'M NULL\n", expectedSeqnum);
-                        }
-
                     }
-                    print_stack(receivingStack);
-                    fprintf(stderr, "Expected : %i\n", expectedSeqnum);
                     replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     if (replyResult == EXIT_FAILURE) {
                         fprintf(stderr, "Couldn't send ACK\n");
@@ -193,7 +186,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 }
                 send_reply(sfd, PTYPE_NACK, previousTimestamp, expectedSeqnum);
             }
-
+            print_stack(receivingStack);
             fprintf(stderr, "AFTER : \tExpect : %i\tWindow : %i\tStack : %i\n", expectedSeqnum, window,
                     (int) receivingStack->size);
 

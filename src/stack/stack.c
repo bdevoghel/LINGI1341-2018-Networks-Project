@@ -175,6 +175,7 @@ int is_in_stack(stack_t *stack, uint8_t seqnum) {
 
 void print_stack(stack_t *stack) {
     node_t *runner = stack->first;
+    fprintf(stderr, "STACK CONTENT : ");
     for (int i=1; i <= (int)stack_size(stack); i++) {
         fprintf(stderr, "%i -> ", runner->seqnum);
         runner = runner->next;
