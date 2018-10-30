@@ -91,15 +91,11 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     while(stack_size(sendingStack) > 0 && !mainBreak ) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
-        if(pkt_get_timestamp(sendingStack->last->pkt) != 0 && !hasNACKed && !hasRTed) {
-            fprintf(stderr, "Wait for last packet response\n");
+        if(seqnumToSend == packetsToSend % 256 && stack_size(sendingStack) < 256 && stack_size(sendingStack) > 1) {
+            // fprintf(stderr, "Wait to send last packet\n");
         } else {
 
             // check if seqnumToSend is out of receivers window
-            /* TODO check is seqnumToSend is not prior to lastSeqnumAcked
-            if(seqnumToSend < lastSeqnumAcked && lastSeqnumAcked <= 256 - MAX_WINDOW_SIZE) {
-                seqnumToSend = lastSeqnumAcked;
-            }*/
             if(!isInRange(seqnumToSend)) {
                 seqnumToSend = (uint8_t) ((lastSeqnumAcked + MAX_WINDOW_SIZE - 1) % 256);
             }
@@ -185,6 +181,10 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
             enteredAtLeastOnce = 1;
         }
         fflush(stderr); // TODO remove for fluidity
+
+        if(mainBreak && (lastSeqnumAcked != packetsToSend % 256 && stack_size(sendingStack) < 256)) { // if wants to quit but last pkt not yet ACKed
+            mainBreak = 0;
+        }
     } // main while loop
     fprintf(stderr, RED "~ Connection termination ACKed. %i packets were sent." RESET "\n\n", sentCount);
 
