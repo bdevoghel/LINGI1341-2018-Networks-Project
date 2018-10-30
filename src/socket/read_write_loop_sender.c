@@ -15,7 +15,6 @@ stack_t *sendingStack;
 uint8_t seqnumToSend;
 pkt_t *nextPktToSend;
 uint8_t lastEncodedSeqnum; // seqnum of last pkt transmitted successfully
-pkt_t *lastPktReceived;
 uint8_t lastSeqnumAcked;
 
 int packetsToSend;
@@ -145,9 +144,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     sentCount++;
 
                     // updating values for next pkt to send
-                    if (receiverWindowSize > 0) { // TODO !!!! should only be in following else case ??! !!!!
-                        receiverWindowSize--;
-                    }
                     if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
                         seqnumToSend = (lastEncodedSeqnum + 1) % 256; // restart where we left
                         hasRTed = 0; // reset
@@ -155,6 +151,9 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                     } else {
                         lastEncodedSeqnum = seqnumToSend; // = lastSeqnumAcked; seqnum just sent
                         seqnumToSend = (seqnumToSend + 1) % 256;
+                        if (receiverWindowSize > 0) {
+                            receiverWindowSize--;
+                        }
                     }
                 }
             }
@@ -188,9 +187,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         fflush(stderr); // TODO remove for fluidity
     } // main while loop
     fprintf(stderr, RED "~ Connection termination ACKed. %i packets were sent." RESET "\n\n", sentCount);
-
-    pkt_del(nextPktToSend);
-    pkt_del(lastPktReceived);
 
     return EXIT_SUCCESS;
 }
@@ -232,7 +228,7 @@ int process_response(const int sfd) {
 
     if((int) justRead > 0) { // ACK or NACK received
 
-        lastPktReceived = pkt_new();
+        pkt_t *lastPktReceived = pkt_new();
         pktStatusCode = pkt_decode(buf, justRead, lastPktReceived);
         if(pktStatusCode != PKT_OK) {
             fprintf(stderr, "Decode failed : %i. Ignoring packet\n", pktStatusCode);

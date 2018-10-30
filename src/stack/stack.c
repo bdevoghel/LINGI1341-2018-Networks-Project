@@ -68,10 +68,10 @@ pkt_t *stack_remove(stack_t *stack, uint8_t seqnum) {
         if(stack->size <= 1) {
             stack->first = NULL;
             stack->last = NULL;
-            pkt_t *pack = runner->pkt;
+            pkt_t *packet = runner->pkt;
             node_free(runner);
             stack->size = 0;
-            return pack;
+            return packet;
         }
         runner->prev->next = runner->next;
         runner->next->prev = runner->prev;
@@ -151,6 +151,9 @@ void stack_free(stack_t *stack) {
 }
 
 void node_free(node_t *node){
+    if(node == NULL) {
+        return;
+    }
     free(node);
 }
 
