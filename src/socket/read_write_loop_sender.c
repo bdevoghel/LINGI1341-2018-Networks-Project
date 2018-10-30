@@ -101,7 +101,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
                 seqnumToSend = lastSeqnumAcked;
             }*/
             if(!isInRange(seqnumToSend)) {
-                seqnumToSend = (lastSeqnumAcked + MAX_WINDOW_SIZE - 1) % 256;
+                seqnumToSend = (uint8_t) ((lastSeqnumAcked + MAX_WINDOW_SIZE - 1) % 256);
             }
 
             if(receiverWindowSize == 0 && !hasRTed && !hasNACKed) {
