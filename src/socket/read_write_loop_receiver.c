@@ -119,7 +119,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
             previousTimestamp = pkt_get_timestamp(packet);
             fprintf(stderr, CYN"Received %i\tTimestamp : %i\n"RESET, pkt_get_seqnum(packet), pkt_get_timestamp(packet));
-            if (decodeResult == PKT_OK) {
+            if (decodeResult == PKT_OK) { // TODO NICO : si E_CRC : renvoyer un NACK du même CRC (pkt corrompu)
                 if (
                         pkt_get_type(packet) == PTYPE_DATA &&
                         pkt_get_length(packet) == 0 &&
@@ -186,11 +186,12 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 }
             } else {
                 pkt_del(packet);
-                fprintf(stderr, "PACKET NOT OK : %i (4 == E_CRC)\n", decodeResult); // TODO : ca c'est ma faute --Brieuc
-                send_reply(sfd, PTYPE_NACK, previousTimestamp, expectedSeqnum);
-                if(pkt_get_seqnum(packet) < expectedSeqnum) { // TODO : legit ?? modif apportee apres infinite de " Expect : 25	\n Received 0   \n PACKET NOT OK : 4 (4 == E_CRC)" recus
-                    break;
+                if(decodeResult == 4) {
+                    fprintf(stderr, YEL "Packet %i was corrupted\n" RESET, expectedSeqnum);
+                } else {
+                    fprintf(stderr, "PACKET NOT OK : %i\n", decodeResult);
                 }
+                send_reply(sfd, PTYPE_NACK, previousTimestamp, expectedSeqnum);
             }
 
             fprintf(stderr, "AFTER : \tExpect : %i\tWindow : %i\tStack : %i\n", expectedSeqnum, window,

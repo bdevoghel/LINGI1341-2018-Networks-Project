@@ -80,6 +80,7 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     packetsSent = 0;
     seqnumToSend = 0; // first pkt to send
     lastSeqnumAcked = 0; // none have been ACKed yet
+    int sendingLast = 0;
 
     // variables for synchronous I/O multiplexing
     fd_set fdSet; // file descriptor set for select()
@@ -88,67 +89,72 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     timeout.tv_usec = 500000; // min wait time for ACK or NACK [µs]
 
 
-    while(stack_size(sendingStack) > 0 && !mainBreak ) {
+    while (stack_size(sendingStack) > 0 && !mainBreak) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
-        if(seqnumToSend == packetsToSend % 256 && stack_size(sendingStack) < 256 && stack_size(sendingStack) > 1) {
+        if (stack_size(sendingStack) < 256 && seqnumToSend != lastSeqnumAcked && !sendingLast && pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) {
             // fprintf(stderr, "Wait to send last packet\n");
         } else {
-
-            // check if seqnumToSend is out of receivers window
-            if(!isInRange(seqnumToSend)) {
-                seqnumToSend = (uint8_t) ((lastSeqnumAcked + MAX_WINDOW_SIZE - 1) % 256);
+            if(pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) { // sending last packet
+                sendingLast = 1;
             }
 
-            if(receiverWindowSize == 0 && !hasRTed && !hasNACKed) {
-                fprintf(stderr, "Receiver's window is full, not sending next packet (yet)\n");
+            // check if seqnumToSend is out of receivers window
+            if (!isInRange(seqnumToSend)) {
+                //fprintf(stderr, "Packet seqnum to send is not in range, not sending packet :seqnumToSend/lastSeqnumAcked : %i/%i\n", seqnumToSend, lastSeqnumAcked);
             } else {
 
-                nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
-                if (nextPktToSend == NULL) {
-                    fprintf(stderr, "Getting next packet to send failed\n");
+                if (receiverWindowSize == 0 && !hasRTed && !hasNACKed) {
+                    //fprintf(stderr, "Receiver's window is full, not sending next packet (yet)\n");
                 } else {
 
-                    if (pkt_get_timestamp(nextPktToSend) == 0) {
-                        packetsSent++;
-                    }
-
-                    // setting correct timestamp and window of [nextPktToSend]
-                    pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL)); // set current time
-                    statusCode = pkt_set_window(nextPktToSend, nextWindow);
-                    if (statusCode != PKT_OK) {
-                        fprintf(stderr, "Error in pkt_set_window()\n");
-                    }
-                    update_nextWindow();
-
-                    // encoding end sending pkt
-                    pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
-                    if (pktStatusCode != PKT_OK) {
-                        fprintf(stderr, "Encode failed : status code = %i\n", pktStatusCode);
-                        return EXIT_FAILURE; // cannot continue without causing problems later or
-                    }
-
-                    fprintf(stderr, GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n",
-                            pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
-                            pkt_get_timestamp(nextPktToSend), receiverWindowSize);
-
-                    justWritten = (size_t) write(sfd, buf, bufSize);
-                    if ((int) justWritten < 0) {
-                        fprintf(stderr, "Write failed\n");
-                    }
-
-                    sentCount++;
-
-                    // updating values for next pkt to send
-                    if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
-                        seqnumToSend = (lastEncodedSeqnum + 1) % 256; // restart where we left
-                        hasRTed = 0; // reset
-                        hasNACKed = 0; // reset
+                    nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
+                    if (nextPktToSend == NULL) {
+                        //fprintf(stderr, "Getting next packet to send failed\n");
                     } else {
-                        lastEncodedSeqnum = seqnumToSend; // = lastSeqnumAcked; seqnum just sent
-                        seqnumToSend = (seqnumToSend + 1) % 256;
-                        if (receiverWindowSize > 0) {
-                            receiverWindowSize--;
+
+                        if (pkt_get_timestamp(nextPktToSend) == 0) {
+                            packetsSent++;
+                        }
+
+                        // setting correct timestamp and window of [nextPktToSend]
+                        pktStatusCode = pkt_set_timestamp(nextPktToSend, (uint32_t) time(NULL)); // set current time
+                        statusCode = pkt_set_window(nextPktToSend, nextWindow);
+                        if (statusCode != PKT_OK) {
+                            fprintf(stderr, "Error in pkt_set_window()\n");
+                        }
+                        update_nextWindow();
+
+                        // encoding end sending pkt
+                        pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
+                        if (pktStatusCode != PKT_OK) {
+                            fprintf(stderr, "Encode failed : status code = %i\n", pktStatusCode);
+                            return EXIT_FAILURE; // cannot continue without causing problems later or
+                        }
+
+                        fprintf(stderr,
+                                GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n",
+                                pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
+                                pkt_get_timestamp(nextPktToSend), receiverWindowSize);
+
+                        justWritten = (size_t) write(sfd, buf, bufSize);
+                        if ((int) justWritten < 0) {
+                            fprintf(stderr, "Write failed\n");
+                        }
+
+                        sentCount++;
+
+                        // updating values for next pkt to send
+                        if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
+                            seqnumToSend = (lastEncodedSeqnum + 1) % 256; // restart where we left
+                            hasRTed = 0; // reset
+                            hasNACKed = 0; // reset
+                        } else {
+                            lastEncodedSeqnum = seqnumToSend; // = lastSeqnumAcked; seqnum just sent
+                            seqnumToSend = (seqnumToSend + 1) % 256;
+                            if (receiverWindowSize > 0) {
+                                receiverWindowSize--;
+                            }
                         }
                     }
                 }
@@ -156,24 +162,24 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         }
 
         int enteredAtLeastOnce = 0;
-        while((receiverWindowSize == 0 && !mainBreak) || !enteredAtLeastOnce) { // wait until receiver can receive more packets or flagged
+        while ((receiverWindowSize == 0 && !mainBreak) || !enteredAtLeastOnce) { // wait until receiver can receive more packets
             // reset [fdSet] and see if a ACK or NACK arrived
             FD_ZERO(&fdSet);
             FD_SET(sfd, &fdSet);
             select(sfd + 1, &fdSet, NULL, NULL, &timeout);
-            if(FD_ISSET(sfd, &fdSet)) { // some response received
+            if (FD_ISSET(sfd, &fdSet)) { // some response received
                 statusCode = process_response(sfd);
-                if(statusCode == 1) { // last pkt (N)ACKed
+                if (statusCode == 1) { // last pkt (N)ACKed
                     mainBreak = 1;
-                } else if(statusCode == -2) { // read failed
+                } else if (statusCode == -2) { // read failed
                     return statusCode;
-                } else if(statusCode == -3) { // read failed
+                } else if (statusCode == -3) { // read failed
                     return EXIT_SUCCESS;
                 }
                 break;
             }
 
-            if(check_for_RT()) {
+            if (check_for_RT()) {
                 // a RT has expired and [seqnumToSend] has been updated accordingly
                 break;
             }
@@ -182,11 +188,12 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
         }
         fflush(stderr); // TODO remove for fluidity
 
-        if(mainBreak && (lastSeqnumAcked != packetsToSend % 256 && stack_size(sendingStack) < 256)) { // if wants to quit but last pkt not yet ACKed
+        if (mainBreak && (lastSeqnumAcked != packetsToSend % 256 && stack_size(sendingStack) < 256)) { // if wants to quit but last pkt not yet ACKed
             mainBreak = 0;
         }
     } // main while loop
-    fprintf(stderr, RED "~ Connection termination ACKed. %i packets were sent." RESET "\n\n", sentCount);
+    fprintf(stderr, RED "~ Connection termination ACKed. %i/%i packets were sent." RESET "\n\n", sentCount,
+            packetsToSend);
 
     return EXIT_SUCCESS;
 }
@@ -256,7 +263,7 @@ int process_response(const int sfd) {
         } else if(pkt_get_type(lastPktReceived) == PTYPE_NACK) {
             fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
 
-            receiverWindowSize = pkt_get_window(lastPktReceived);
+            // receiverWindowSize = pkt_get_window(lastPktReceived); // TODO better if not doing that ??
 
             seqnumToSend = pkt_get_seqnum(lastPktReceived);
 
@@ -292,6 +299,6 @@ int isInRange(uint8_t seqnum) {
 }
 
 void update_nextWindow() {
-    // TODO implementation : set the next size of our senders's receiving buffer
+// TODO implementation : set the next size of our senders's receiving buffer
     nextWindow = MAX_WINDOW_SIZE; // always the same (no buffering problem on sender)
 }
