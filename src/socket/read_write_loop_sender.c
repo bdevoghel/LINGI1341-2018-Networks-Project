@@ -80,7 +80,6 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     packetsSent = 0;
     seqnumToSend = 0; // first pkt to send
     lastSeqnumAcked = 0; // none have been ACKed yet
-    int sendingLast = 0;
 
     // variables for synchronous I/O multiplexing
     fd_set fdSet; // file descriptor set for select()
@@ -88,16 +87,15 @@ int read_write_loop_sender(const int sfd, stack_t *stack) {
     timeout.tv_sec = 0;
     timeout.tv_usec = 500000; // min wait time for ACK or NACK [µs]
 
+    // TODO set more local variables if possible
+
 
     while (stack_size(sendingStack) > 0 && !mainBreak) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
-        if (stack_size(sendingStack) < 256 && seqnumToSend != lastSeqnumAcked && !sendingLast && pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) {
+        if (stack_size(sendingStack) < 256 && seqnumToSend != lastSeqnumAcked && stack_get_pkt(sendingStack, seqnumToSend) != NULL && pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) {
             // fprintf(stderr, "Wait to send last packet\n");
         } else {
-            if(pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) { // sending last packet
-                sendingLast = 1;
-            }
 
             // check if seqnumToSend is out of receivers window
             if (!isInRange(seqnumToSend)) {
