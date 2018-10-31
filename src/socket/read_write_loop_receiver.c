@@ -119,7 +119,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
             previousTimestamp = pkt_get_timestamp(packet);
             fprintf(stderr, CYN"Received %i\tTimestamp : %i\n"RESET, pkt_get_seqnum(packet), pkt_get_timestamp(packet));
-            if (decodeResult == PKT_OK) { // TODO NICO : si E_CRC : renvoyer un NACK du même CRC (pkt corrompu)
+            if (decodeResult == PKT_OK) {
                 if (
                         pkt_get_type(packet) == PTYPE_DATA &&
                         pkt_get_length(packet) == 0 &&
@@ -127,6 +127,10 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         pkt_get_seqnum(packet) == expectedSeqnum
                         ) {
                     incrementSeqnum();
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     break;
                 }

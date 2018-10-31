@@ -1,0 +1,1728 @@
+commit 48f86903ad6502b26cab38f5793edd8a7dcf1186
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 22 01:20:59 2018 +0200
+
+    Commented some returns in sender
+
+ src/socket/read_write_loop_sender.c | 64 +++++++++++++++++++++----------------
+ 1 file changed, 36 insertions(+), 28 deletions(-)
+
+commit 327fa840f4fd3b849cb37c836572e6b5c38a8f42
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 22 01:09:54 2018 +0200
+
+    Commented some returns in sender
+
+ src/socket/read_write_loop_sender.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+commit e59abb9ef93b13471a58f36fe4f2deba2ef0e4c0
+Merge: ace4a07 2b4b93d
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 23:23:26 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit ace4a07ddc69a172e6d6d5f864b51bdf3c9c08bc
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 23:23:18 2018 +0200
+
+    Updated tests, removed auto killer, added 255 * 512B Blocker on sender, updated window 5->31
+
+ src/packet/packet.h                 |  2 +-
+ src/sender.c                        | 13 +++++++++++--
+ src/socket/read_write_loop_sender.c | 12 ++++++------
+ tests/packetTest.c                  |  4 ++--
+ 4 files changed, 20 insertions(+), 11 deletions(-)
+
+commit 2b4b93d425270a78c0d9e689c42aab5ac13955f8
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 17:36:46 2018 +0200
+
+    1 letter difference makes it all
+
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 3c19651ceb435992b8daf229ee36ba1097f12b0c
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 16:58:58 2018 +0200
+
+    Accepting packets get discarded
+
+ src/sender.c                        | 10 +++++-----
+ src/socket/read_write_loop_sender.c |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+commit aa0988ea7d90c9133fd3df24a64fec344ed6e089
+Merge: 52994a5 a27da40
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 16:21:44 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+    
+    # Conflicts:
+    #       src/socket/read_write_loop_sender.c
+
+commit 52994a5a642f06fbc7cc0372bf7e48d909280999
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 16:17:59 2018 +0200
+
+    Losing packet system + added debug (I also use the debug word Brieuc :P)
+
+ src/socket/read_write_loop_receiver.c |  1 +
+ src/socket/read_write_loop_sender.c   | 19 +++++++++++++------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
+
+commit a27da40b99d44c27403d51ea18180ba14c7153fd
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 16:09:13 2018 +0200
+
+    Accepting sender launch before receiver
+
+ src/sender.c                          |  14 ++++-
+ src/socket/read_write_loop_receiver.c |   3 +-
+ src/socket/read_write_loop_sender.c   | 103 ++++++++++++++++++++--------------
+ 3 files changed, 72 insertions(+), 48 deletions(-)
+
+commit 4c96abf700e3980abc424739f92af675ae97d979
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 15:29:07 2018 +0200
+
+    Added NACK when out of sequence
+
+ src/socket/read_write_loop_receiver.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+commit 1db305336b79a3de72eadb9142f839cf8e828122
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 15:00:50 2018 +0200
+
+    Need lines (or not)
+
+ src/receiver.c | 350 ---------------------------------------------------------
+ 1 file changed, 350 deletions(-)
+
+commit 84ea0643f32ddec29a29ecad4fc3b84b797103cb
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 15:00:01 2018 +0200
+
+    Need lines
+
+ src/receiver.c                        | 356 +++++++++++++++++++++++++++++++++-
+ src/sender.c                          |   2 +-
+ src/socket/read_write_loop_receiver.c |   2 +
+ 3 files changed, 355 insertions(+), 5 deletions(-)
+
+commit 14a59f0dae758b8f532c18270436600660635255
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:53:12 2018 +0200
+
+    Connexion termination
+
+ src/sender.c                        |  3 ++-
+ src/socket/read_write_loop_sender.c | 31 +++++--------------------------
+ src/socket/read_write_loop_sender.h |  2 +-
+ 3 files changed, 8 insertions(+), 28 deletions(-)
+
+commit c883edf18b5a18ca2d9889669bb124e78cceecf8
+Merge: f7e7482 59af4a8
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:38:09 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit f7e74822b5467e93364a8545511f330c72cb5724
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:38:01 2018 +0200
+
+    debug termination
+
+ mario.txt                           | 22 +++++++++++-----------
+ src/sender.c                        | 10 ++++------
+ src/socket/read_write_loop_sender.c |  2 --
+ 3 files changed, 15 insertions(+), 19 deletions(-)
+
+commit 59af4a8de6ffbdba6e392ece1643f8d73ad95ce6
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:29:03 2018 +0200
+
+    (Re)Oups <3
+
+ src/socket/read_write_loop_receiver.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+commit c8a623f65ea1fba5639ca98e75ee0af8eb2bfb39
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:20:31 2018 +0200
+
+    Oups <3
+
+ src/socket/read_write_loop_receiver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 4b9dd35bac99a63cf3e88cdb10aac8cacfde0614
+Merge: 475b393 9dcfa13
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:17:32 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 475b3935dd0ce4bff557ffffd14a8401d6dd67f4
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:17:22 2018 +0200
+
+    Send ACK on STOP (finally <3)
+
+ src/socket/read_write_loop_receiver.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+commit 9dcfa13be1cf92ced6650865c57b4a4283c73dee
+Merge: e5219e8 f024622
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:12:20 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit e5219e88b9555e15f68cc25a6322a585360876fe
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:12:12 2018 +0200
+
+    works perfectly but sender does not exit
+
+ src/socket/read_write_loop_sender.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+commit f0246228a084754ada37a78e86dfc2aa15927fae
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:09:31 2018 +0200
+
+    Freed tests
+
+ src/stack/stack.c  | 2 ++
+ tests/packetTest.c | 3 ++-
+ tests/stackTest.c  | 2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+commit dfde36f52f17ed65ea6f01169bacafac8ae15fbd
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:09:15 2018 +0200
+
+    Debug packet resending & deleted test code
+
+ src/socket/read_write_loop_sender.c | 75 +++++++++++--------------------------
+ 1 file changed, 21 insertions(+), 54 deletions(-)
+
+commit ee5a51a36ba668e6af5f7f93b3e83772719ca378
+Merge: b2cdfc5 2f4b3e1
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:05:18 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit b2cdfc549426f6ba26186f6a9aa05743cba1f883
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 14:05:12 2018 +0200
+
+    Update please
+
+ tests/stackTest.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 2f4b3e16f3139da4d3bd7f421038fa66dcbfd087
+Merge: 058be8e 6f4ada9
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:04:39 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 058be8e8f8d6cb2b82115ec35f4a194301e0e8f4
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 14:01:33 2018 +0200
+
+    debug
+
+ src/stack/stack.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 6f4ada93d53723c95210b8669694740aee2c7312
+Merge: cbe0552 a1db715
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 13:47:16 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit cbe0552574c35dda8000f2016e1a3602898545db
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 13:47:09 2018 +0200
+
+    Updated tests
+
+ Makefile            |   1 +
+ src/packet/Makefile |   2 +
+ src/receiver.c      |   3 --
+ tests/Makefile      |   9 +++--
+ tests/packetTest.c  |  91 ++++++++++++++++++++++++++++++++++++++++++++++
+ tests/stackTest.c   | 103 ++++------------------------------------------------
+ 6 files changed, 107 insertions(+), 102 deletions(-)
+
+commit a1db715d5a91072d4034175b02bc00dccd14b9e2
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 13:46:17 2018 +0200
+
+    free pkt appropriately
+
+ src/stack/stack.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 953c52f8b52cdbdb0ae0ba5ad65d44e0b9159632
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 13:01:22 2018 +0200
+
+    Avoid go-back-n on RT expired
+
+ src/socket/read_write_loop_sender.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+commit 2306016dcce4f76ef0794e327a1a6df3d58cd49e
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 12:41:03 2018 +0200
+
+    Debug
+
+ src/socket/read_write_loop_sender.c |  3 ++-
+ src/socket/read_write_loop_sender.h | 13 +++++++------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+commit 437842ea87dbf0905926a5ea92615ed7d66345b4
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 12:32:35 2018 +0200
+
+    Makeing access to next pkt to send straightforward
+
+ mario.txt                           |  6 ++--
+ src/socket/read_write_loop_sender.c | 68 +++++++++++++++++--------------------
+ src/stack/stack.c                   |  5 +--
+ 3 files changed, 37 insertions(+), 42 deletions(-)
+
+commit c763cc1caa06f2659a0b653c60edb2aed9eaa2c0
+Merge: 3beb936 733b30f
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 11:41:33 2018 +0200
+
+    Merge remote-tracking branch 'origin/senderRethink'
+    
+    # Conflicts:
+    #       src/socket/read_write_loop_receiver.c
+    #       src/socket/read_write_loop_sender.c
+
+commit 733b30f8bf60fd764287aafd3ace1715d3e8f36f
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 11:27:50 2018 +0200
+
+    Debugging and remove toSend ptr from stack
+
+ src/socket/read_write_loop_sender.c | 19 +++++++++++++++----
+ src/stack/stack.c                   | 25 +++++--------------------
+ src/stack/stack.h                   |  1 -
+ 3 files changed, 20 insertions(+), 25 deletions(-)
+
+commit 265e5dc8bac5eceb2095395c6781c6de5d10e050
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 02:41:25 2018 +0200
+
+    Error correction
+
+ src/socket/read_write_loop_sender.c |  2 +-
+ src/stack/stack.c                   | 38 +------------------------------------
+ src/stack/stack.h                   |  8 --------
+ 3 files changed, 2 insertions(+), 46 deletions(-)
+
+commit d2c12d1839dc80fb31ef4eb97d9c9ea976bf09f7
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 02:23:17 2018 +0200
+
+    Sending messages in good order with selective repeat
+
+ src/socket/read_write_loop_sender.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+commit 368bc2e0c16578353792a8fb98ce0e6782a249f4
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 02:08:45 2018 +0200
+
+    Sender and read_write_loop_sender debugging
+
+ src/sender.c                          | 15 ++++++++++++
+ src/socket/read_write_loop_receiver.c |  2 +-
+ src/socket/read_write_loop_sender.c   | 46 +++++++++++++++++++++++------------
+ src/stack/stack.c                     |  8 ++++++
+ src/stack/stack.h                     |  2 +-
+ 5 files changed, 56 insertions(+), 17 deletions(-)
+
+commit b8c749c01d826b63138459ed7c18aa17acd7b117
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 00:52:04 2018 +0200
+
+    Sender and read_write_loop_sender debugging
+
+ src/socket/read_write_loop_sender.c |  7 ++++---
+ src/stack/stack.c                   | 25 +++++++++++++++++++++----
+ src/stack/stack.h                   |  4 ++--
+ 3 files changed, 27 insertions(+), 9 deletions(-)
+
+commit 3beb93668c5099708d4b6629b1fba7bbd4620dce
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 00:42:32 2018 +0200
+
+    Added truncated packets management
+
+ src/socket/read_write_loop_receiver.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+commit 52e4ad0b31357c9ad9c3b952be92e08ec316e5ee
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sun Oct 21 00:32:46 2018 +0200
+
+    Sender and read_write_loop_sender correction for ACK and NACK usage (DOES NOT COMPILE)
+
+ src/packet/packet.c                 |   2 +-
+ src/sender.c                        |  17 ---
+ src/socket/read_write_loop_sender.c | 259 +++++++++++++++++-------------------
+ src/stack/stack.c                   |  12 +-
+ src/stack/stack.h                   |  13 +-
+ 5 files changed, 142 insertions(+), 161 deletions(-)
+
+commit a17f02304c8b73a6bdc39630595a5a3a809b20b4
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sun Oct 21 00:01:43 2018 +0200
+
+    Hum... OK... It seems to work...
+
+ src/socket/read_write_loop_receiver.c | 15 +++++++++++----
+ src/socket/read_write_loop_sender.c   |  2 +-
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+commit 21a45ca93c9f42ebffc5bd3c80a4bbee03011933
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sat Oct 20 21:14:17 2018 +0200
+
+    Working but selective repeat chelou as we say dans la langue de Molière
+
+ src/socket/read_write_loop_receiver.c | 8 +++++++-
+ src/stack/stack.c                     | 4 ++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+commit 63bf2dd72b5c7a0f8ac342467c4672b1cca4d98a
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sat Oct 20 20:40:17 2018 +0200
+
+    Working but selective repeat chelou as we say dans la langue de Molière
+
+ src/socket/read_write_loop_sender.c | 66 +++++++++++++++++++++----------------
+ src/stack/stack.c                   | 14 ++++++--
+ 2 files changed, 49 insertions(+), 31 deletions(-)
+
+commit 4fb371fd3e9402bbf2ffb61de0c6ba120a05760b
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sat Oct 20 19:14:41 2018 +0200
+
+    Resend with NACK ok and Recovering from buffer on receiver also when receiving missing packet avec having received the next ones
+
+ src/packet/packet.c                   |  2 +-
+ src/socket/read_write_loop_receiver.c | 28 ++++++++++++++++++----
+ src/socket/read_write_loop_sender.c   | 45 ++++++++++++++++++++++++++---------
+ src/stack/stack.c                     | 27 +++++++++++----------
+ 4 files changed, 73 insertions(+), 29 deletions(-)
+
+commit 859a9f928ef20123fc1aeae7a6890c7056430ae2
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Sat Oct 20 15:48:29 2018 +0200
+
+    Solved stack smashed error
+
+ src/packet/packet.c                   |  6 ++--
+ src/packet/packet.h                   |  2 +-
+ src/sender.c                          |  2 +-
+ src/socket/read_write_loop_receiver.c | 64 +++++++++++++++++++++++------------
+ src/socket/read_write_loop_sender.c   | 38 +++++++++------------
+ 5 files changed, 63 insertions(+), 49 deletions(-)
+
+commit 8886b38f92bfdabf6dbcc618ce814b8273c050e0
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 23:58:56 2018 +0200
+
+    Programs finish correctly when everything has been sent
+
+ src/sender.c                          |  2 +-
+ src/socket/read_write_loop_receiver.c | 14 +++++----
+ src/socket/read_write_loop_sender.c   | 59 +++++++++++++++++++++++------------
+ src/stack/stack.c                     |  8 +++--
+ 4 files changed, 54 insertions(+), 29 deletions(-)
+
+commit be0079b8a9febf7b7e7b19f08b796bf83d2ed2b0
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 22:30:26 2018 +0200
+
+    Commit for memory
+
+ cases.txt                             | 37 ++++++++++++++
+ hello.txt                             | 84 +++++++++++++++++++++++++++++---
+ mario.txt                             | 91 +++++++++++++++++++++++++++++++++++
+ src/socket/read_write_loop_receiver.c |  4 +-
+ src/socket/read_write_loop_sender.c   | 27 ++++++++---
+ 5 files changed, 228 insertions(+), 15 deletions(-)
+
+commit a9ac1415f205502d4424a940cd0fa9f40f13d19b
+Merge: 441b348 c6e782b
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 20:28:16 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 441b34871e038b62c918cc0cb183af5e15521abc
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 20:28:08 2018 +0200
+
+    Added some casting for the IDE
+
+ src/packet/packet.c                   | 6 +++---
+ src/socket/read_write_loop_receiver.c | 4 ++--
+ src/socket/read_write_loop_sender.c   | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+commit c6e782b744aae6091cd14acf0e31588c968f7087
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 20:21:16 2018 +0200
+
+    Love Nico bonne mert
+
+ src/socket/read_write_loop_sender.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+commit 5801d7f98d89f665cfa74df900fbbca5c1d49124
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 18:17:51 2018 +0200
+
+    Adapting window
+
+ src/socket/read_write_loop_sender.c | 59 ++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 30 deletions(-)
+
+commit d2edbe3c510b37ec1ff18d9f2a68aabf9267bd39
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 18:06:16 2018 +0200
+
+    Got a text at output mamene
+
+ src/packet/packet.c                   | 10 ++++++----
+ src/socket/read_write_loop_receiver.c | 22 +++++-----------------
+ src/socket/read_write_loop_sender.c   | 11 +++--------
+ 3 files changed, 14 insertions(+), 29 deletions(-)
+
+commit c908d736a70fbffac258f1885a18ff611334e6ff
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 17:34:08 2018 +0200
+
+    Decode still failing
+
+ src/socket/read_write_loop_sender.c | 133 ++++++++++++++++++++----------------
+ 1 file changed, 73 insertions(+), 60 deletions(-)
+
+commit a877e61b126a63abbc8bf6e6e25b805fdf6e6728
+Merge: 2f9ab5c 94bd570
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 17:14:11 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 2f9ab5cc198dd6a8360873647cfb3e3d4478ba72
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 17:13:54 2018 +0200
+
+    Debugging read_write_loop_sender
+
+ src/socket/read_write_loop_sender.c | 28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
+
+commit 94bd570e8592232f10166a9981beff25ce2d62b1
+Merge: 8cf5c9f 83bf8a7
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 17:10:08 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 8cf5c9f7ef547a856512490653e15b580b42507b
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 17:09:55 2018 +0200
+
+    Sending ACKS (w/ debug)
+
+ CMakeLists.txt                        |  3 ++-
+ src/socket/read_write_loop_receiver.c | 26 ++++++++++++++++----------
+ 2 files changed, 18 insertions(+), 11 deletions(-)
+
+commit a1c3a971850004aba9308f0057142ae51560e79e
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 16:45:32 2018 +0200
+
+    Up
+
+ CMakeLists.txt                        |  3 +-
+ src/receiver.c                        |  2 +-
+ src/socket/read_write_loop_receiver.c | 59 +++++++++++++++++++++++------------
+ src/socket/read_write_loop_receiver.h |  2 ++
+ src/socket/read_write_loop_sender.c   |  2 ++
+ 5 files changed, 46 insertions(+), 22 deletions(-)
+
+commit 83bf8a72db7b0ba2a7529f11478f8f874f3e1cc6
+Merge: 6bd35d7 a2c2c80
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 16:40:16 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 6bd35d7aa6ed834f46914579fa7a8a18d6e14496
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 16:40:06 2018 +0200
+
+    Debugging read_write_loop_sender
+
+ src/sender.c                        |  5 -----
+ src/socket/read_write_loop_sender.c | 20 +++++++++++++++++---
+ 2 files changed, 17 insertions(+), 8 deletions(-)
+
+commit a2c2c80c7bfbc0b707cb8af256fa890f34397ee4
+Merge: 35b541b 75e651a
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 15:54:34 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 75e651ad4c067b9e8c6df40b26132e59247894e4
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:54:24 2018 +0200
+
+    Debugging read_write_loop_sender
+
+ src/socket/read_write_loop_sender.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+commit 35b541b3bc1a6be762866097767bc23b8035941f
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 15:54:13 2018 +0200
+
+    Added \n
+
+ src/socket/read_write_loop_receiver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 8eb88f34ad709213e264f2adec88a1d56b099757
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 15:51:56 2018 +0200
+
+    Expecting packet 0 and not 1
+
+ src/receiver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 7de91b8f3c30d9cd6d5f17f387da715be4f274b9
+Merge: e71fb9d bfc3820
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:51:28 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit e71fb9d13783928fa7a8526a01d22f30e4c8fcc9
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:51:18 2018 +0200
+
+    Packet debugging
+
+ src/packet/packet.c | 2 +-
+ src/packet/packet.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+commit bfc3820e51a94aab4d15d2ed9f9e36cb058649a9
+Merge: 13639af 873f683
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 15:49:26 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 13639af8530b5bacff8ecfd8e9e2711b31696038
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 15:49:15 2018 +0200
+
+    Commit for updates
+
+ src/receiver.c                        |  3 +--
+ src/socket/read_write_loop_receiver.c | 15 +++++++++++++++
+ 2 files changed, 16 insertions(+), 2 deletions(-)
+
+commit 873f683c6496e4a91c6cc6a115f452ebbc3c0c20
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:43:38 2018 +0200
+
+    Packet debugging
+
+ src/packet/packet.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+commit 12ecee5407046e5b6eadc1ed2a4845ccbe486d53
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:25:38 2018 +0200
+
+    Debugging of read_write_loop_sender (without printing debug code)
+
+ src/sender.c                        | 1 -
+ src/socket/read_write_loop_sender.c | 2 --
+ src/stack/stack.c                   | 1 -
+ 3 files changed, 4 deletions(-)
+
+commit e38ab1e155c5cbf1ea789798c7cbfc9c3fb962eb
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:23:36 2018 +0200
+
+    Debugging of read_write_loop_sender (with printing debug code)
+
+ src/sender.c                        | 1 +
+ src/socket/read_write_loop_sender.c | 2 ++
+ src/stack/stack.c                   | 5 ++++-
+ 3 files changed, 7 insertions(+), 1 deletion(-)
+
+commit d7ee41fce781d598ed6a20df2b5b217193ba4e0f
+Merge: 4f0d233 f38e5c4
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:02:50 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 4f0d2331a3a842aae98e366406e225acf2b1a87c
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 15:02:40 2018 +0200
+
+    Debugging of read_write_loop_sender
+
+ src/socket/read_write_loop_sender.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
+
+commit f38e5c430338a25543ce43cef792b0c56721dfce
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 14:57:32 2018 +0200
+
+    Commit for updates
+
+ hello.txt                             | 12 +++++++++++-
+ src/receiver.c                        |  1 -
+ src/socket/read_write_loop_receiver.c | 21 ++++++++++++---------
+ 3 files changed, 23 insertions(+), 11 deletions(-)
+
+commit 163142bd635d9479d54145a13d392aea20cf1a64
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 12:18:18 2018 +0200
+
+    Debugging of read_write_loop_sender
+
+ src/socket/read_write_loop_sender.c | 4 ++--
+ src/socket/read_write_loop_sender.h | 1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+commit f7b84c6cd8b5c48d357cc2d6c4d49384aeb76ce9
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 19 12:15:02 2018 +0200
+
+    Implementation of read_write_loop_sender
+
+ src/sender.c                        | 170 ++++++++++++++++++----------------
+ src/socket/read_write_loop_sender.c | 176 +++++++++++++++++++++++-------------
+ src/socket/read_write_loop_sender.h |  16 +++-
+ 3 files changed, 218 insertions(+), 144 deletions(-)
+
+commit b14831bb3774b70c6a94daae0028dc365d91b894
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Fri Oct 19 01:03:04 2018 +0200
+
+    FINALLY ABLE TO SEND 1 LOVELY PACKET <3
+
+ hello.txt                             |  1 +
+ src/receiver.c                        |  9 +++--
+ src/sender.c                          |  7 ----
+ src/socket/read_write_loop_receiver.c | 16 +++++----
+ src/socket/read_write_loop_sender.c   | 65 ++++++++++++++++++-----------------
+ 5 files changed, 50 insertions(+), 48 deletions(-)
+
+commit 89569477e3c3fd4e2619aca99670618277ed03b6
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 23:39:33 2018 +0200
+
+    Implementation of read_write_loop_sender
+
+ src/sender.c                        | 34 ++++++++++---------------
+ src/socket/read_write_loop_sender.c | 51 ++++++++++++++++++++++++++-----------
+ src/socket/read_write_loop_sender.h |  2 +-
+ 3 files changed, 50 insertions(+), 37 deletions(-)
+
+commit b6a17cd661c44292a2dd7356cd6d7ffd4662fc14
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 23:21:48 2018 +0200
+
+    Makefile implementation of new read_write_loop_sender
+
+ Makefile            | 4 ++--
+ src/sender.c        | 2 +-
+ src/socket/Makefile | 1 +
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+commit b0abbf0e9deed2ff21b13a9841085f1b9e77f60c
+Merge: 7052225 816fca2
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 23:18:12 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 70522258aad333c36375c1be2af08b9238648f9b
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 23:17:23 2018 +0200
+
+    Sender debugging
+
+ src/sender.c                        | 23 ++++++++++
+ src/socket/read_write_loop_sender.c | 85 +++++++++++++++++++++++++++++++++++++
+ src/socket/read_write_loop_sender.h | 23 ++++++++++
+ 3 files changed, 131 insertions(+)
+
+commit 816fca200fa9aff2a6edc93c116c1106bf82f606
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 23:15:37 2018 +0200
+
+    Should be able to receive a basic packet
+
+ src/receiver.c                        |  9 ++++++---
+ src/sender.c                          |  5 ++---
+ src/socket/read_write_loop_receiver.c | 12 +++++++-----
+ src/socket/read_write_loop_receiver.h |  2 +-
+ 4 files changed, 16 insertions(+), 12 deletions(-)
+
+commit 5b2cf1c979a2c20101ad36be2bc514b2ab0e39c9
+Merge: 9c4364f a9a4da6
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 22:01:56 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 9c4364ff367fcea60e1b777a3968e102e10b665e
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 22:01:45 2018 +0200
+
+    Receiver debugging
+
+ src/receiver.c | 2 +-
+ src/sender.c   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+commit a9a4da69f8fcd5b2103b5d216444957a7ee64d0f
+Merge: 9682c1d f34aa3e
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:58:45 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+    
+    # Conflicts:
+    #       Makefile
+
+commit f34aa3edd78e62278fe1fea2230a67d4f77d2304
+Merge: b908167 9298683
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 21:58:10 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 9682c1d9abbd85252319b901ef1fec0b690a9283
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:58:10 2018 +0200
+
+    Changed // to #
+
+ Makefile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+commit b9081675184f0b11083d66c3730ab243532ae1fe
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 21:58:00 2018 +0200
+
+    Receiver debugging
+
+ Makefile       | 6 +++---
+ src/receiver.c | 1 +
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+commit 9298683478a1df067905a1f2fb79e82622b6dced
+Merge: bea92f3 b10eab2
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:55:48 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit b10eab204b226cc5310e567ce4fdf0ac0fe65985
+Merge: 4613daa 350d559
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 21:55:42 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit bea92f3d28dff8346db7ce8e5ef904f1b53603b9
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:55:40 2018 +0200
+
+    Worked on the receiver
+
+ src/receiver.c                        |  7 +++++--
+ src/socket/read_write_loop_receiver.c | 20 ++++++++++++++------
+ src/socket/read_write_loop_receiver.h |  2 +-
+ 3 files changed, 20 insertions(+), 9 deletions(-)
+
+commit 4613daa376af8e252a58954a68476aea2e97690d
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 21:55:32 2018 +0200
+
+    Sender debugging
+
+ Makefile     | 4 ++--
+ src/sender.c | 6 +++++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+commit 350d559011f7bee55f10a5cde1087dcadfd97262
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:31:58 2018 +0200
+
+    Updated Makefiles
+
+ Makefile            | 2 +-
+ src/socket/Makefile | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+commit 901d4be47fa6ce1b14e5ba19c902af524e5a2a87
+Merge: 478d75f 8f28d1a
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:23:07 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 478d75ffdc6ebc967bec4a97bf1f3c76ae638053
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:22:59 2018 +0200
+
+    Push to get updates
+
+ src/socket/read_write_loop_receiver.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+commit 8f28d1a898b3f824ce16468b7575722938e5bf7a
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 21:22:10 2018 +0200
+
+    Stack debug
+
+ src/stack/stack.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+commit 9e79dc7a7227e1044721a750f36c6f5db2dda5f0
+Merge: 2b6faf6 d065e18
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:15:59 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 2b6faf6dd7cbab878b1b0b05e8f1450e0e2a857c
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 21:15:52 2018 +0200
+
+    Small commit for big updates
+
+ src/receiver.c                        | 118 ++++++++++++++++++++++++++++++----
+ src/socket/read_write_loop_receiver.c |  69 ++++++++++++++++++++
+ src/socket/read_write_loop_receiver.h |  34 ++++++++++
+ 3 files changed, 209 insertions(+), 12 deletions(-)
+
+commit d065e18be55bf414adba34ed2a4886f16d759fa7
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 21:02:58 2018 +0200
+
+    Sender implementation & stack evolution
+
+ src/sender.c      | 16 +++++++++++++++-
+ src/stack/stack.c | 24 +++++++++++++++++-------
+ src/stack/stack.h |  2 +-
+ 3 files changed, 33 insertions(+), 9 deletions(-)
+
+commit 38e0fcc9161d2bc43266bdaeaa0d0b36c4039f4b
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 20:25:05 2018 +0200
+
+    Removed some small comments + added no code revision for atoi
+
+ src/sender.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+commit 2276af8f8f2d0613cd5ae727da8a640161c9dd9d
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 20:20:54 2018 +0200
+
+    Added the stack_force_remove function
+
+ src/stack/stack.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 49a3681b01066120f09338e224aea55c44ce5de2
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 20:13:44 2018 +0200
+
+    Added the stack_force_remove function
+
+ src/stack/stack.c | 41 +++++++++++++++++++++++++++++++++++++++++
+ src/stack/stack.h |  9 +++++++++
+ 2 files changed, 50 insertions(+)
+
+commit cd84076a8cc288e5fc4442fe445ec26aa4ccfb59
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 18:53:08 2018 +0200
+
+    Sender implementation
+
+ src/sender.c | 107 +++++++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 60 insertions(+), 47 deletions(-)
+
+commit 50a55d6be4e45cb43ef5c943d015d1bf6ab25d7a
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 16:08:20 2018 +0200
+
+    Sender implementation
+
+ src/sender.c      | 157 +++++++++++++++++++++++++++++++++++++++++++++---------
+ src/stack/stack.c |   6 ++-
+ 2 files changed, 137 insertions(+), 26 deletions(-)
+
+commit cc73587681660e08bfbb4f4a47f5bae6f5876e03
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 14:21:57 2018 +0200
+
+    Stack further implementation
+
+ Makefile          |  5 +++-
+ src/stack/stack.c | 82 +++++++++++++++++++++++++++++++++++++------------------
+ src/stack/stack.h | 15 ++++++++++
+ tests/stackTest.c | 10 +++++--
+ 4 files changed, 83 insertions(+), 29 deletions(-)
+
+commit 2e87697e4c51f5ca5b829cc614ca38cbd408ed4e
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 13:35:07 2018 +0200
+
+    Makefile for testing
+
+ Makefile           | 11 ++++++-----
+ src/stack/Makefile |  3 ---
+ tests/Makefile     | 47 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 53 insertions(+), 8 deletions(-)
+
+commit 99839b9a28f0d6c0efc207833b392d14371381f5
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 00:40:15 2018 +0200
+
+    Go to sleep + todo stacktest delete executable
+
+ src/sender.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 8ba784b4d335c0f478a712391bb678d5b7fed1f7
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 00:32:17 2018 +0200
+
+    Fixed some stack issues
+
+ src/stack/stack.c | 2 +-
+ tests/stackTest.c | 4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+commit 48a0492939b41693ade96770c82e1fa33843bf15
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 00:20:01 2018 +0200
+
+    Makefile debugging
+
+ Makefile           | 6 +++---
+ src/stack/Makefile | 1 +
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+commit 2cd21edaf9225ddcb2d5a552ceb863a9a599c6e2
+Merge: 45b381b a16646c
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 00:16:37 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+    
+    # Conflicts:
+    #       src/stack/stack.c
+
+commit 45b381b276f88dac5ad0b7dd6a8612bbc49adc55
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Thu Oct 18 00:15:45 2018 +0200
+
+    Added test suite functions
+
+ src/sender.c       |  4 +---
+ src/stack/Makefile |  2 +-
+ src/stack/stack.c  | 16 +++++++++++++---
+ tests/stackTest.c  |  3 +--
+ 4 files changed, 16 insertions(+), 9 deletions(-)
+
+commit a16646c97bdcf40e12fabb9626a98341022e9343
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 18 00:14:40 2018 +0200
+
+    Stack debugging
+
+ Makefile           |  9 ++++++---
+ src/stack/Makefile |  4 ++--
+ src/stack/stack.c  | 13 ++-----------
+ src/stack/stack.h  |  5 ++---
+ 4 files changed, 12 insertions(+), 19 deletions(-)
+
+commit 95d7767bdfa36911a17cdfcd554eac3d896dac4e
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 23:41:04 2018 +0200
+
+    Added test suite functions
+
+ tests/stackTest.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+commit fc2f7ea06ccd4adc5ccb1d2cc7433837a81a298e
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 23:33:46 2018 +0200
+
+    Makefile debugging
+
+ Makefile            | 4 ++--
+ src/packet/Makefile | 1 +
+ src/socket/Makefile | 1 +
+ src/stack/Makefile  | 1 +
+ 4 files changed, 5 insertions(+), 2 deletions(-)
+
+commit 3c1810ca3036cecfc536d7c1c4a08e4e47d3d4b8
+Merge: c16e97a fe46b5f
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 23:23:29 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit c16e97a27fa4301037d2a72d6dbab7076b2b6afa
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 23:23:19 2018 +0200
+
+    Makefile test stack implementation
+
+ Makefile           | 3 +++
+ src/stack/Makefile | 5 +++++
+ 2 files changed, 8 insertions(+)
+
+commit fe46b5f220e63f575491666b85751177faef2d0d
+Merge: 4c260d6 5b43f3b
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 23:15:51 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 4c260d61829a0ba0e242221e413e0375464a8726
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 23:15:41 2018 +0200
+
+    Tests should work if Brieuc works well
+
+ tests/stackTest.c | 36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
+
+commit 5b43f3bd18f1b52159217fc53e43588f207c59b1
+Merge: dff4282 46d8454
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 23:12:04 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit dff4282569957f873af496834235afc331665ee0
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 23:11:54 2018 +0200
+
+    Stack implementation
+
+ src/packet/packet.c |  6 ------
+ src/packet/packet.h |  6 ++++++
+ src/stack/stack.c   | 22 ++++++++++++++--------
+ src/stack/stack.h   | 10 ++++++----
+ 4 files changed, 26 insertions(+), 18 deletions(-)
+
+commit 46d8454d8e76f4ebbbb4713ea0b6bd909f6d318b
+Merge: 59c333a ea2ecf2
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 22:59:43 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 59c333a8e5e9017fa363bcebd2e195ace3ab3043
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 22:59:33 2018 +0200
+
+    Inserted data into the stack for sending
+
+ src/sender.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+commit ea2ecf2f6ca4eda0c11c92d42aef1b0d845eee9a
+Merge: 611a129 0b1f88b
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 22:58:45 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+    
+    # Conflicts:
+    #       src/stack/stack.c
+
+commit 611a129015714f0f4810b9e47625ebbaa9d55c3b
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 22:57:30 2018 +0200
+
+    Stack implementation
+
+ src/stack/stack.c | 95 +++++++++++++++++++++++++++++++++++++++++++++++++++----
+ src/stack/stack.h | 25 ++++++++-------
+ 2 files changed, 101 insertions(+), 19 deletions(-)
+
+commit 0b1f88b112b0b471ab575b844aada2fcab2632d7
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 22:39:00 2018 +0200
+
+    Added tests for the stack
+
+ src/sender.c                   |  3 ++-
+ src/stack/stack.c              | 10 +++++-----
+ src/stack/stack.h              | 10 +++++-----
+ tests/{test1.c => stackTest.c} | 38 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 50 insertions(+), 11 deletions(-)
+
+commit 672169311c29d96e526fefd3aa8e037489fd4d0d
+Merge: c4f4c51 b5ba2b0
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 22:04:49 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit c4f4c51b8ade8a1cd2cd8ae6c36568879da08fd6
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 22:04:35 2018 +0200
+
+    Started initializing packets
+
+ src/sender.c | 45 +++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 10 deletions(-)
+
+commit b5ba2b0373037b1005dd257b7851773edd3ac8f9
+Merge: 4b88517 5c57253
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 22:04:01 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 4b88517a4df9f345c4fabe9d5aca6159595fc217
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 22:03:45 2018 +0200
+
+    Stack library added
+
+ Makefile            | 14 ++++++----
+ src/packet/Makefile |  2 +-
+ src/socket/Makefile |  2 +-
+ src/stack/Makefile  | 42 +++++++++++++++++++++++++++++
+ src/stack/stack.c   | 33 +++++++++++++++++++++++
+ src/stack/stack.h   | 76 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 162 insertions(+), 7 deletions(-)
+
+commit 5c57253ace04d8e7c40f7ab80e7e07ec1589f7ac
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 21:29:02 2018 +0200
+
+    Fixed read_write_loop CTRL_D issue
+
+ src/socket/read_write_loop.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+commit 154729460359fdf6c96f656437d047153d25d0f0
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 21:08:29 2018 +0200
+
+    Updated .h files
+
+ CMakeLists.txt |  7 +++++++
+ src/receiver.c |  9 ++++++---
+ src/sender.c   | 10 ++++++----
+ 3 files changed, 19 insertions(+), 7 deletions(-)
+
+commit 08d25620153de60966c58a0287268ed7fa3559f7
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 19:53:10 2018 +0200
+
+    Makefile debugging SUCCESS
+
+ Makefile            | 104 ++++++++++++++++------------------------------------
+ src/socket/Makefile |   2 +-
+ 2 files changed, 32 insertions(+), 74 deletions(-)
+
+commit e2429bedffdb448d4f8cfdc9129a7881348b6c2d
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 16:07:47 2018 +0200
+
+    Makefile debugging packet and socket
+
+ src/packet/Makefile | 42 ++++++++++++++++++++++++++++++++++++++++++
+ src/socket/Makefile | 21 +++++++++++++++------
+ 2 files changed, 57 insertions(+), 6 deletions(-)
+
+commit 9a4d55301baee1112cdeb2e52a4e3d28a186207d
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 15:39:43 2018 +0200
+
+    Makefile debugging
+
+ src/socket/Makefile | 2 +-
+ src/socket/chat.c   | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+commit 58e1a3dc5183dd73f2d338d6f208fa4c39089581
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Wed Oct 17 15:19:19 2018 +0200
+
+    Updated .h files
+
+ src/sender.c                 | 26 ++++++++++++++++++++------
+ src/socket/create_socket.c   |  6 ------
+ src/socket/create_socket.h   | 19 ++++++++++++++++---
+ src/socket/read_write_loop.h | 10 +++++++---
+ src/socket/real_address.c    |  8 --------
+ src/socket/real_address.h    | 15 +++++++++++++--
+ src/socket/wait_for_client.h |  9 ++++++---
+ 7 files changed, 62 insertions(+), 31 deletions(-)
+
+commit 7687e7def8aa57695125e8865df81462b53f6b60
+Merge: de1892e 4340b1e
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 14:19:14 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+    
+    # Conflicts:
+    #       src/sender.c
+
+commit de1892e6dfa0c39ab36007e10b3313d0b9771c35
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 14:15:12 2018 +0200
+
+    Docsting and argument reading
+
+ src/receiver.c | 61 +++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ src/sender.c   | 61 ++++++++++++++++++++++++++++++++++++++++++----------------
+ 2 files changed, 100 insertions(+), 22 deletions(-)
+
+commit 4340b1e886a7e0ab1b23e06c647c65a34001cfee
+Author: Nicolas van de Walle <nicwalle.tuto@gmail.com>
+Date:   Wed Oct 17 12:17:36 2018 +0200
+
+    Started interpreting hostnames and ports and created socket
+
+ src/sender.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+commit edaa360a46b7ae0e18f562b1b7babafbf2db6061
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 11:23:44 2018 +0200
+
+    Deleting files now taken into account by .gitignore
+
+ src/packet/packet.o | Bin 18072 -> 0 bytes
+ src/sender.o        | Bin 6368 -> 0 bytes
+ src/socket/chat     | Bin 13744 -> 0 bytes
+ src/socket/chat.o   | Bin 6568 -> 0 bytes
+ 4 files changed, 0 insertions(+), 0 deletions(-)
+
+commit e07e76d6338807c8009dcac5ca50d934c7f3fa58
+Author: N van de Walle <vandewalleni@grievous.info.ucl.ac.be>
+Date:   Wed Oct 17 11:19:15 2018 +0200
+
+    Added gitignore
+
+ .gitignore | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+commit 9ca688774d9c0937ea7981ceae1b422ef6d6e855
+Merge: 73194df fac4e71
+Author: N van de Walle <vandewalleni@grievous.info.ucl.ac.be>
+Date:   Wed Oct 17 11:16:00 2018 +0200
+
+    Merge branch 'master' of https://github.com/Nicwalle/project1-network
+
+commit 73194df4766e6050d0d60de63cf1a398ca203ace
+Author: N van de Walle <vandewalleni@grievous.info.ucl.ac.be>
+Date:   Wed Oct 17 11:11:39 2018 +0200
+
+    Changed the include order
+
+ src/packet/packet.o        | Bin 0 -> 18072 bytes
+ src/sender.o               | Bin 0 -> 6368 bytes
+ src/socket/chat            | Bin 0 -> 13744 bytes
+ src/socket/chat.o          | Bin 0 -> 6568 bytes
+ src/socket/create_socket.c |   6 +++---
+ src/socket/real_address.c  |   4 +++-
+ 6 files changed, 6 insertions(+), 4 deletions(-)
+
+commit fac4e71040a4c15699a87b454969626ba514a03f
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 17 11:01:15 2018 +0200
+
+    Generalising for MAX_PAYLOAD_SIZE
+
+ src/socket/create_socket.c   |  1 -
+ src/socket/read_write_loop.c | 14 ++++++++------
+ src/socket/wait_for_client.c |  4 +++-
+ 3 files changed, 11 insertions(+), 8 deletions(-)
+
+commit 042197952796b68aebc6b099430265b711f25fcb
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Tue Oct 16 23:20:48 2018 +0200
+
+    Tests of packet moved as comment to test1.c for later CUnit implementation
+
+ src/packet/Makefile | 39 ----------------------
+ src/packet/packet.c | 57 -------------------------------
+ tests/test1.c       | 96 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 95 insertions(+), 97 deletions(-)
+
+commit dc11b6ad89febab1d23d8340e353bcc86395fda1
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Tue Oct 16 23:02:50 2018 +0200
+
+    Packet debugging SUCCEEDED
+
+ src/packet/packet.c | 67 ++++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 41 insertions(+), 26 deletions(-)
+
+commit 31a4d4d2124fee590d1ad8d17ea60e778d8a4c03
+Merge: 3a887c6 498544f
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Tue Oct 16 22:00:18 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 3a887c644dc1fd68c944a9a1e6a7b580245b189b
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Tue Oct 16 22:00:02 2018 +0200
+
+    Packet Makefile for compiling and testing
+
+ src/packet/Makefile | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+commit 5d80b574b070f0caf4be0957a8122b7593b05fdb
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Tue Oct 16 21:59:10 2018 +0200
+
+    Packet bug correction and adding test function
+
+ src/packet/packet.c | 81 +++++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 66 insertions(+), 15 deletions(-)
+
+commit 498544fb5f090ae600c54205a85f977dba2bdced
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Tue Oct 16 15:45:12 2018 +0200
+
+    Updated the sockets code (inspired by github files given in the sources) + updated .h files so they match the inginious exercices
+
+ src/socket/create_socket.c   | 31 ++++++++++++++++++-------------
+ src/socket/create_socket.h   |  2 +-
+ src/socket/read_write_loop.c | 20 +++++++++++++-------
+ src/socket/real_address.c    | 30 ++++++++++++++++--------------
+ src/socket/wait_for_client.c |  2 +-
+ 5 files changed, 49 insertions(+), 36 deletions(-)
+
+commit 2d26e6812a39a05e62bee0eaae20b8daaae83de4
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Tue Oct 16 11:54:50 2018 +0200
+
+    Added .h files for socket part
+
+ src/socket/create_socket.h   | 21 +++++++++++++++++++++
+ src/socket/read_write_loop.h | 18 ++++++++++++++++++
+ src/socket/real_address.h    | 24 ++++++++++++++++++++++++
+ src/socket/wait_for_client.h | 20 ++++++++++++++++++++
+ 4 files changed, 83 insertions(+)
+
+commit 962d0194f25bd856fa2c69593b34652801d60af5
+Merge: c7b962c 1b7aefa
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Tue Oct 16 00:04:18 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit c7b962cbac60216de1a0d893b28b8bdc2e9ca5cc
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Tue Oct 16 00:04:04 2018 +0200
+
+    Still doesn't work (donno why) but little update of the sockets
+
+ src/socket/create_socket.c | 30 ++++++++----------------------
+ src/socket/real_address.c  | 11 ++++-------
+ 2 files changed, 12 insertions(+), 29 deletions(-)
+
+commit 1b7aefa6c4374025991b455d988f1fa98c545f5d
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 15 23:51:34 2018 +0200
+
+    Socket makefile (magic)
+
+ Makefile            | 16 ++++++++--------
+ src/socket/Makefile |  4 ++--
+ src/socket/chat.c   |  6 +++---
+ 3 files changed, 13 insertions(+), 13 deletions(-)
+
+commit 97186c21bbd457bbddb039386c260512372554a1
+Merge: bd31c5c 7f8674f
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 15 23:16:11 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit bd31c5c069558bf32b0a6a780b4c4fcf0c282a22
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 15 23:15:45 2018 +0200
+
+    Status_code checking
+
+ src/packet/packet.c | 77 +++++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 63 insertions(+), 14 deletions(-)
+
+commit 7f8674fed8a750f158b242e33b9993812718daa6
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 15 22:51:32 2018 +0200
+
+    Added all "Envoyer_et_recevoir_des_données" with still some errors
+
+ src/socket/create_socket.c   |  5 ++--
+ src/socket/read_write_loop.c | 62 +++++++++++++++++++++++++++++++++++++++++---
+ src/socket/real_address.c    | 21 ++++++++-------
+ src/socket/wait_for_client.c | 35 +++++++++++++++++++++++--
+ 4 files changed, 106 insertions(+), 17 deletions(-)
+
+commit 95262280f823741fe57b36f0504c53d5e5d28a62
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 15 17:34:59 2018 +0200
+
+    Minor corrections & unneeded code deletion
+
+ Makefile            |  3 +++
+ src/packet/packet.c | 52 +++++-----------------------------------------------
+ 2 files changed, 8 insertions(+), 47 deletions(-)
+
+commit 3adf7b2d0cfb5898c74f5587dbe6f19304182f5d
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 15 01:23:44 2018 +0200
+
+    Endianess correction
+
+ src/packet/packet.c | 217 ++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 127 insertions(+), 90 deletions(-)
+
+commit 6161b989cd24886e33aa90125e628ddd9e7fae9b
+Merge: 7a616a4 9526228
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 15 15:51:12 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 7a616a4866f7d67905ca3cdc74f1cc0a9c5086cb
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 15 15:50:58 2018 +0200
+
+    Added the create_socket function
+
+ src/socket/create_socket.c | 47 ++++++++++++++++++++++++++++++++++++++++++----
+ src/socket/real_address.c  |  9 ++++++---
+ 2 files changed, 49 insertions(+), 7 deletions(-)
+
+commit c36a6862e70f9d2e9b8bd9988e941ac60661e49b
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 15 15:28:43 2018 +0200
+
+    Added include for create_socket function
+
+ src/socket/create_socket.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+commit 46a6498638ab13b3a9be6920c547f454d77cc7b8
+Author: Nicolas van de Walle <dev.nw@walle.be>
+Date:   Mon Oct 15 15:07:11 2018 +0200
+
+    Added the real_address code + sources of inspiration (github)
+
+ src/socket/real_address.c | 37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
+
+commit 928b68677bc82f65ffdbbc210526d5b2436cdc6a
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sat Oct 13 22:33:11 2018 +0200
+
+    Corrections and CRC checking
+
+ src/packet/packet.c | 84 ++++++++++++++++++-----------------------------------
+ 1 file changed, 29 insertions(+), 55 deletions(-)
+
+commit d5289b38c863b9a426c230b55a02d829823232b8
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sat Oct 13 22:31:39 2018 +0200
+
+    Making c99 compatible
+
+ Makefile | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+
+commit acc53018088f5f1ac5888a2eab1d4b1cea154c57
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sat Oct 13 22:30:00 2018 +0200
+
+    Making c99 compatible
+
+ src/receiver.c | 1 +
+ src/sender.c   | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+commit dd5606489990a347f16d07a402e4fc7d191a783e
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Sat Oct 13 20:29:51 2018 +0200
+
+    packet implementation
+
+ src/packet/packet.c | 308 ++++++++++++++++++++++++++++++++++++++++++++++------
+ src/packet/packet.h |  44 ++++----
+ 2 files changed, 296 insertions(+), 56 deletions(-)
+
+commit ad4c716da432d5fe210f9138bb6f0171992de962
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 12 17:25:45 2018 +0200
+
+    Minor corrections
+
+ src/receiver.c |  7 +++++++
+ src/sender.c   | 23 ++++++++++++-----------
+ 2 files changed, 19 insertions(+), 11 deletions(-)
+
+commit 0665ce12c36a3467ef960d8f725b3eef5195765c
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Fri Oct 12 17:23:44 2018 +0200
+
+    Makefile corrections
+
+ Makefile | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 50 insertions(+), 4 deletions(-)
+
+commit 78e8f0cce0805548b07fc5c650f30082321fcdf5
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 11 15:42:03 2018 +0200
+
+    Layout correction
+
+ src/socket/create_socket.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+commit 70deed0cbb48a2957e89a54c6a6bedfe1b0b93c4
+Merge: 92af66b 349c447
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 11 15:35:38 2018 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 92af66b22ea32c4cde9c0bfa016cfd7ebcfbde84
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Thu Oct 11 15:35:02 2018 +0200
+
+    Adding files from Inginious' preparatory exercises
+
+ src/main.c                   |   6 --
+ src/packet/packet.c          | 104 ++++++++++++++++++++++++++++++
+ src/packet/packet.h          | 146 +++++++++++++++++++++++++++++++++++++++++++
+ src/receiver.c               |  36 ++++++++++-
+ src/sender.c                 |  70 ++++++++++++++++++++-
+ src/socket/Makefile          |  37 +++++++++++
+ src/socket/chat.c            |  85 +++++++++++++++++++++++++
+ src/socket/create_socket.c   |  26 ++++++++
+ src/socket/read_write_loop.c |  21 +++++++
+ src/socket/real_address.c    |  26 ++++++++
+ src/socket/wait_for_client.c |  23 +++++++
+ tests/test1.c                |  12 +++-
+ 12 files changed, 579 insertions(+), 13 deletions(-)
+
+commit 349c447e3af3db2a1474fac01f1d26176f60f3b1
+Author: bdevoghel <38432307+bdevoghel@users.noreply.github.com>
+Date:   Wed Oct 10 20:55:48 2018 +0200
+
+    Delete not needed file
+
+ src/main.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+commit 74e652bdd9cdbca34b2e6d0d580994c9f1d061b6
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Wed Oct 10 20:54:53 2018 +0200
+
+    Main src files creation
+
+ Makefile       | 12 +++++++++---
+ src/receiver.c |  4 ++++
+ src/sender.c   |  4 ++++
+ 3 files changed, 17 insertions(+), 3 deletions(-)
+
+commit da98b2fdfb8396b358086ed5835919c590900fad
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 8 15:21:31 2018 +0200
+
+    Creating makefile
+    test1 format correction
+
+ Makefile                     | 47 +++++++++++++++++++++++++++++++++++++++++++-
+ tests/{test1.cpp => test1.c} |  0
+ 2 files changed, 46 insertions(+), 1 deletion(-)
+
+commit f0fc03248f81505959437835d96f02fe65d54dff
+Author: bdevoghel <38432307+bdevoghel@users.noreply.github.com>
+Date:   Mon Oct 8 15:10:19 2018 +0200
+
+    Update README.md
+
+ README.md | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+commit 227cf2cc6ea2a804fb64d11c370c31c40d5035f2
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 8 15:07:31 2018 +0200
+
+    Adding need files
+
+ Makefile        | 1 +
+ src/main.c      | 6 ++++++
+ tests/test1.cpp | 1 +
+ 3 files changed, 8 insertions(+)
+
+commit a972c50fd587815162efd92ee289694c9816a07f
+Author: Brieuc de Voghel <bdev@telenet.be>
+Date:   Mon Oct 8 15:04:16 2018 +0200
+
+    first commit
+
+ README.md | 1 +
+ 1 file changed, 1 insertion(+)
