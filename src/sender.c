@@ -256,11 +256,25 @@ int init_connection() {
 }
 
 int read_file(char *file, stack_t *stack) {
-    if (!strcmp(fileToRead, "stdin")) {
-        // TODO : stdin
+    int fd;
+
+    if (!strcmp(file, "stdin")) {
+        fd = open("stdin.txt", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+        char buffer[512];
+        int justRead = (int) read(STDIN_FILENO, buffer, 1);
+        while (justRead != 0) {
+            int justWrote = (int) write(fd, buffer, 1);
+            if (justWrote == -1) {
+                fprintf(stderr, "Couldn't write in temporary file");
+            }
+            justRead = (int) read(STDIN_FILENO, buffer, 1);
+        }
+        close(fd);
+        fd = open("stdin.txt", O_RDWR);
+    } else {
+        fd = open(file, O_RDWR);
     }
 
-    int fd = open(file, O_RDWR);
     if (fd < 0) {
         return ooops("Could not open file to read");
     }
