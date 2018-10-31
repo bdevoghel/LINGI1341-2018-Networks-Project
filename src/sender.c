@@ -157,16 +157,12 @@ int main(int argc, char *argv[]) {
      * sendingStack         : stack in wich the packets to send are stored in increasing order
      */
     int loop = 0;
-    statusCode = -2;
-    while(loop < 10 && statusCode == -2) { // tries at least 10 times
+    statusCode = EXIT_FAILURE;
+    while(loop < 10 && statusCode == EXIT_FAILURE) { // tries at least 10 times
         statusCode = read_write_loop_sender(socketFileDescriptor, sendingStack);
-        if(statusCode != 0) {
-            if(statusCode == -2 && loop < 9) { // receiver was probably not launched yet
-                loop++;
-                sleep(1); // wait 1 second before trying again
-            } else {
-                return statusCode;
-            }
+        if(statusCode == EXIT_FAILURE && loop < 9) { // receiver was probably not launched yet
+            loop++;
+            sleep(1); // wait 1 second before trying again
         }
     }
     fprintf(stderr, "Packets sent successfully.\n");
