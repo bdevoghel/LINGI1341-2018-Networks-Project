@@ -16,7 +16,6 @@
 
 #include "../src/packet/packet.h"
 
-// TODO check for memory leakage
 void testEncodeAndDecodePacket(void) {
 
     pkt_t *pkt = pkt_new();

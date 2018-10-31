@@ -15,8 +15,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// TODO ensure no memory leakage !!
-
 #include "socket/real_address.h"
 #include "socket/create_socket.h"
 #include "socket/read_write_loop_receiver.h"
@@ -160,7 +158,7 @@ int process_options(int argc,char *argv[]) {
     }
 
     if(!fOption) {
-        fileToWrite = NULL; // TODO write in stdout
+        fileToWrite = NULL;
     }
 
     fprintf(stderr, "Options processed.\n   Hostname      : %s\n   Port          : %i\n   File to write : %s\n", hostname, port, fileToWrite);
@@ -168,7 +166,7 @@ int process_options(int argc,char *argv[]) {
 }
 
 
-int init_connection() { // TODO return value ? what is the result ?
+int init_connection() {
     if (hostname == NULL || port < 0) {
         return ooops("Hostname is NULL or destination port is negative");
     }

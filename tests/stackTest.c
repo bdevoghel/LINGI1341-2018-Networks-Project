@@ -18,8 +18,6 @@
 #include "../src/packet/packet.h"
 
 
-// TODO : check for memory leaks ! (use valgrind to check)
-
 void testInsertIntoStack(void) {
     stack_t *stack = stack_init();
 

@@ -70,8 +70,6 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp, uint8_t seqnu
     }
     free(ackBuffer);
     pkt_del(packet);
-
-
     return EXIT_SUCCESS;
 }
 
@@ -95,7 +93,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     int justRead;
     int written;
 
-    pkt_t *packet;
+    pkt_t *packet = NULL;
     pkt_status_code decodeResult;
 
     int replyResult;
@@ -113,6 +111,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         if (FD_ISSET(sfd, &fdSet)) {
             fprintf(stderr,"BEFORE : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
 
+            pkt_del(packet); // if packet was assigned previously
             packet = pkt_new();
             justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
@@ -132,6 +131,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    pkt_del(packet);
                     break;
                 }
                 if (pkt_get_tr(packet) == 1) {
@@ -146,18 +146,19 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
                     incrementSeqnum();
 
+                    pkt_del(packet);
                     packet = stack_remove(receivingStack, expectedSeqnum);
 
                     while (packet != NULL) {
                         written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
                         previousTimestamp = pkt_get_timestamp(packet);
-                        pkt_del(packet);
                         if (written == -1) {
                             perror("Can't print packet from stack");
                         }
                         incrementSeqnum();
 
                         window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
+                        pkt_del(packet);
                         packet = stack_remove(receivingStack, expectedSeqnum);
                     }
                     replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
