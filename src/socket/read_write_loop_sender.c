@@ -112,7 +112,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
                         }
 
                         fprintf(stderr,
-                                GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n",
+                                GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tReceivers window was %i" RESET "\n\n",
                                 pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
                                 pkt_get_timestamp(nextPktToSend), receiverWindowSize);
 
@@ -173,7 +173,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
             mainBreak = 0;
         }
     } // main while loop
-    fprintf(stderr, RED "~ Connection termination ACKed. %i/%i packets were sent." RESET "\n\n", packetsSentCount,
+    fprintf(stderr, RED "~ Connection termination ACKed.\n  %i packets were sent for this file of %i packets." RESET "\n\n", packetsSentCount,
             totalPacketsToSend);
 
     return EXIT_SUCCESS;
@@ -224,20 +224,20 @@ int process_response() {
 
         pkt_t *lastPktReceived = pkt_new();
         if (pkt_decode(buf, justRead, lastPktReceived) != PKT_OK) {
-            fprintf(stderr, RED"~ Decode of packet (probably corrupted) failed. Ignoring packet.\n\n"RESET);
+            fprintf(stderr, RED"~ Decode of response failed (packet was probably corrupted). Ignoring packet.\n\n"RESET);
             pkt_del(lastPktReceived);
             return -1; // response discarded
         }
 
         if (pkt_get_type(lastPktReceived) == PTYPE_ACK) {
-            fprintf(stderr, RED "~ ACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i\tStack_size : %li" RESET "\n", pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived), stack_size(sendingStack));
+            fprintf(stderr, RED "~ ACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i\n" RESET, pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
             lastSeqnumAcked = pkt_get_seqnum(lastPktReceived);
 
             // TODO due to jitter, has to check if seqnum has not already been acked in the window !!! otherwise, stack will be emptied in 3 sec, man ! no good
             int amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
-            fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)" RESET "\n\n", amountRemoved);
+            fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)\t\tStack size : %li" RESET "\n\n", amountRemoved, stack_size(sendingStack));
 
             if (lastSeqnumAcked == (totalPacketsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
                 fprintf(stderr, "Last packet ACKed\n");

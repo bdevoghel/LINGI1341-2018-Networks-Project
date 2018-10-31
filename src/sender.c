@@ -18,8 +18,8 @@
 
 #include "socket/real_address.h"
 #include "socket/create_socket.h"
-#include "socket/read_write_loop_sender.h"
 #include "socket/wait_for_client.h"
+#include "socket/read_write_loop_sender.h"
 
 #include "packet/packet.h"
 #include "stack/stack.h"
@@ -46,8 +46,8 @@ int ooops(char *message) {
 
 /**
  * Processes arguments and options received with main
- * @param argc
- * @param argv
+ * @param argc of main
+ * @param argv of main
  * @return : 0 if options processed successfully, 1 if something went wrong
  */
 int process_options(int argc,char *argv[]);
@@ -60,15 +60,10 @@ int init_connection();
 /**
  * Segmentation of [file] into [MAX_PAYLOAD_SIZE] buffers, stocked on [stack] with increasing seqnum
  * @param file : name of the file to read from
- * @param stack
- * @return : 0 if file read successfully with packets stocked on [stack], 1 if something went wrong
+ * @param stack where to stack the packets
+ * @return : 0 if file read successfully, 1 if something went wrong
  */
 int read_file(char *file, stack_t *stack);
-
-/**
- * Increments [seqNum] without exceeding 255 (256 => 0)
- */
-void increment_nextSeqnum();
 
 /**
  * Sender permet de de realiser un transfer de donnees unidirectionnel et fiable
@@ -118,33 +113,17 @@ int main(int argc, char *argv[]) {
         return statusCode;
     }
 
-
-    /* decomment if use with "./sender [...] > log.txt"
-    printf("State of sendingStack : \n     size        : %li\n", stack_size(sendingStack));
-    node_t *runner = sendingStack->first;
-    int looop = 1;
-    while(looop) {
-        printf("     node seqnum : %i\t pkt length  : %i\t prev seqnum : %i\t next seqnum : %i\n", pkt_get_seqnum(runner->pkt), pkt_get_length(runner->pkt), runner->prev->seqnum, runner->next->seqnum);
-        runner = runner->next;
-        if(runner == sendingStack->first) {
-            looop = 0;
-        }
-    }
-    printf("ALL STACK LOG PRINTED\n");
-    fflush(stdout);
-    */
-
-
     /*
-     * Send packets (first 1 and then as much as receiver's window can accept) and wait for their ACK / NACK
+     * Send packets (first one and then as much as receiver's window can accept) and wait for their ACK / NACK
      *
      * Algorithm :
      * - send packet(s), start retransmission timer(s) (RT)
      * - wait for ACK                   OR            NACK                           OR            RTO
-     * - receive ACK                                  - receive NACK (buffered but not complete)   - RT runs out
+     * - receive ACK                                  - receive NACK                               - RT runs out
      * - adapt window                                 - resend seqnum received by NACK             - resend same packet
-     * - if (possible) send next packet                 - <==
-     *    else (window==0) wait for a RTO and then send
+     *                                                - adapt window
+     * - if (possible) send next packet
+     *    else (window==0) wait for a RTO or response and then send next packet
      *
      * RTO :
      * - init when packet send
@@ -169,13 +148,9 @@ int main(int argc, char *argv[]) {
 
     fprintf(stderr, GRN"=> CLOSING CONNECTION" RESET "\n\n");
 
-    // TODO : delink, debound and deconnect connection properly ?
-
     close(socketFileDescriptor);
 
     stack_free(sendingStack);
-
-    // TODO other things to free ? memory leaks !!!
 
     return EXIT_SUCCESS;
 }
@@ -312,7 +287,7 @@ int read_file(char *file, stack_t *stack) {
             close(fd);
             return ooops("Error in pkt_set_seqnum()");
         }
-        increment_nextSeqnum();
+        nextSeqnum = (uint8_t) ((nextSeqnum + 1) % 256);
 
         statusCode = pkt_set_payload(packet, buf, (uint16_t) justRead);
         if (statusCode != PKT_OK) {
@@ -354,8 +329,4 @@ int read_file(char *file, stack_t *stack) {
 
     fprintf(stderr, "File read successfully. %i packet(s) added to the stack. Ready to transmit.\n", count);
     return EXIT_SUCCESS;
-}
-
-void increment_nextSeqnum() {
-    nextSeqnum = (uint8_t) ((nextSeqnum + 1) % 256);
 }
