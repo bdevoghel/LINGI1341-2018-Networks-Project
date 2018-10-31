@@ -128,6 +128,10 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         ) {
                     incrementSeqnum();
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+                    send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     break;
                 }
                 if (pkt_get_tr(packet) == 1) {
