@@ -261,13 +261,14 @@ int read_file(char *file, stack_t *stack) {
     if (!strcmp(file, "stdin")) {
         fd = open("stdin.txt", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
         char buffer[512];
-        int justRead = (int) read(STDIN_FILENO, buffer, 1);
+        int justRead = (int) read(STDIN_FILENO, buffer, 512);
         while (justRead != 0) {
-            int justWrote = (int) write(fd, buffer, 1);
+            int justWrote = (int) write(fd, buffer, (size_t) justRead);
             if (justWrote == -1) {
                 fprintf(stderr, "Couldn't write in temporary file");
             }
-            justRead = (int) read(STDIN_FILENO, buffer, 1);
+            memset(buffer, 0, 512);
+            justRead = (int) read(STDIN_FILENO, buffer, 512);
         }
         close(fd);
         fd = open("stdin.txt", O_RDWR);
@@ -338,6 +339,7 @@ int read_file(char *file, stack_t *stack) {
     }
 
     close(fd);
+    remove("stdin.txt");
 
     /*
      * Add terminating connection packet
