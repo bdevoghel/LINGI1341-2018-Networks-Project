@@ -16,6 +16,7 @@ int sfd;
 stack_t *sendingStack;
 uint8_t seqnumToSend;
 uint8_t lastSeqnumAcked;
+int lastSeqnumAckedCounter;
 uint8_t receiverWindowSize;
 
 int totalPacketsToSend;
@@ -25,6 +26,7 @@ uint32_t RTlength = 4; // == max(RTT) * 2 [s]
 
 int hasRTed = 0;
 int hasNACKed = 0;
+int hasFastRetransmitted = 0;
 int lastpacketsSentCount = 0;
 
 /**
@@ -69,6 +71,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
     uint8_t lastEncodedSeqnum = 0; // seqnum of last packet transmitted successfully (has to start with 0)
     seqnumToSend = 0; // first packet to send
     lastSeqnumAcked = 0; // none have been ACKed yet
+    lastSeqnumAckedCounter = 0; // for fast retransmit
 
     // variables for synchronous I/O multiplexing
     fd_set fdSet; // file descriptor set for select()
@@ -89,7 +92,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
                 //fprintf(stderr, "Packet seqnum to send is not in range\n");
             } else {
 
-                if (receiverWindowSize == 0 && !hasRTed && !hasNACKed) {
+                if (receiverWindowSize == 0 && !hasRTed && !hasNACKed && !hasFastRetransmitted) {
                     //fprintf(stderr, "Receiver's window is full, not sending next packet yet\n");
                 } else {
 
@@ -124,10 +127,11 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
                         packetsSentCount++;
 
                         // updating values for next packet to send
-                        if (hasRTed || hasNACKed) { // avoid go-back-n if RT has timed out or if pkt was lost
+                        if (hasRTed || hasNACKed || hasFastRetransmitted) { // avoid go-back-n
                             seqnumToSend = (lastEncodedSeqnum + 1) % 256; // restart where we left
                             hasRTed = 0; // reset
                             hasNACKed = 0; // reset
+                            hasFastRetransmitted = 0; // reset
                         } else {
                             lastEncodedSeqnum = seqnumToSend; // = lastSeqnumAcked ; seqnum of packet just sent
                             seqnumToSend = (seqnumToSend + 1) % 256;
@@ -233,7 +237,19 @@ int process_response() {
             fprintf(stderr, RED "~ ACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i\n" RESET, pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
-            lastSeqnumAcked = pkt_get_seqnum(lastPktReceived);
+            if (lastSeqnumAcked == pkt_get_seqnum(lastPktReceived)) {
+                lastSeqnumAckedCounter++;
+                fprintf(stderr, "lastSeqnumAckedCounter++ = %i\n", lastSeqnumAckedCounter);
+                if (lastSeqnumAckedCounter == 2) { // same ACK received 3 times
+                    seqnumToSend = lastSeqnumAcked; // fast retransmit
+
+                    fprintf(stderr, "hasFastRetransmitted\n");
+                    hasFastRetransmitted = 1;
+                }
+            } else {
+                lastSeqnumAckedCounter = 0;
+                lastSeqnumAcked = pkt_get_seqnum(lastPktReceived);
+            }
 
             // TODO due to jitter, has to check if seqnum has not already been acked in the window !!! otherwise, stack will be emptied in 3 sec, man ! no good
             int amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
