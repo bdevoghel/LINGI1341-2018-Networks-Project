@@ -173,12 +173,23 @@ int is_in_stack(stack_t *stack, uint8_t seqnum) {
 
 }
 
-void print_stack(stack_t *stack) {
+void stack_print(stack_t *stack, int amount) {
+    int amount2;
+    if (amount == 0) {
+        amount2 = stack_size(stack);
+    } else {
+        amount2 = amount;
+    }
     node_t *runner = stack->first;
     fprintf(stderr, "STACK CONTENT : ");
-    for (int i=1; i <= (int)stack_size(stack); i++) {
+    for (int i=1; i <= (int)stack_size(stack) && i <= amount2; i++) {
         fprintf(stderr, "%i -> ", runner->seqnum);
         runner = runner->next;
     }
-    fprintf(stderr,"END\n");
+    if (amount != 0) {
+        fprintf(stderr, "...\n");
+
+    } else {
+        fprintf(stderr, "END\n");
+    }
 }

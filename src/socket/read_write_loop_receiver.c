@@ -201,7 +201,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
                 pkt_del(packet);
             }
-            print_stack(receivingStack);
+            stack_print(receivingStack, 0);
             fprintf(stderr, "AFTER : \tExpect : %i\tWindow : %i\tStack : %i\n", expectedSeqnum, window,
                     (int) receivingStack->size);
 

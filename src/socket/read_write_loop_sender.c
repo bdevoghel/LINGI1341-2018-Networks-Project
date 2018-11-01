@@ -74,6 +74,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
     lastSeqnumAckedCounter = 0; // for fast retransmit
 
     // variables for synchronous I/O multiplexing
+    uint32_t lastTimeNotInRange = 0;
     fd_set fdSet; // file descriptor set for select()
     struct timeval timeout;
     timeout.tv_sec = 0;
@@ -85,20 +86,28 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
         if (stack_size(sendingStack) < 256 && seqnumToSend != lastSeqnumAcked && stack_get_pkt(sendingStack, seqnumToSend) != NULL && pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) {
-            // fprintf(stderr, "Wait to send last packet\n");
+            fprintf(stderr, "Wait to send last packet\n");
         } else {
 
-            if (!isInRange(seqnumToSend)) {
-                //fprintf(stderr, "Packet seqnum to send is not in range\n");
+            if (!isInRange(seqnumToSend) && lastTimeNotInRange == 0) {
+                fprintf(stderr, "Packet seqnum to send is not in range\n");
+                lastTimeNotInRange = (uint32_t) time(NULL);
             } else {
 
+                // avoid deadlock
+                if (lastTimeNotInRange + 5 > time(NULL)) {
+                    seqnumToSend = lastSeqnumAcked;
+                    fprintf(stderr, "Force avoid deadlock : seqnum to send set to last ACKed seqnum\n");
+                }
+                lastTimeNotInRange = 0;
+
                 if (receiverWindowSize == 0 && !hasRTed && !hasNACKed && !hasFastRetransmitted) {
-                    //fprintf(stderr, "Receiver's window is full, not sending next packet yet\n");
+                    fprintf(stderr, "Receiver's window is full, not sending next packet yet\n");
                 } else {
 
                     nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
                     if (nextPktToSend == NULL) {
-                        //fprintf(stderr, "Getting next packet to send failed\n");
+                        fprintf(stderr, "Did not get next packet to send\n");
                     } else {
 
                         if (pkt_get_timestamp(nextPktToSend) == 0) { // if this is a new packet to send
@@ -111,7 +120,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
                         // encoding end sending pkt
                         pkt_status_code pktStatusCode = pkt_encode(nextPktToSend, buf, &bufSize);
                         if (pktStatusCode != PKT_OK) {
-                            fprintf(stderr, "Encode failed : status code = %i. Fatal error.\n", pktStatusCode);
+                            fprintf(stderr, "Error when encoding packet : status code = %i. Fatal error.\n", pktStatusCode);
                         }
 
                         fprintf(stderr,
@@ -189,7 +198,7 @@ int check_for_RT() {
         if ((time(NULL) - pkt_get_timestamp(runner->pkt)) > RTlength) { // if sent longer than [RTlength] seconds ago
             seqnumToSend = runner->seqnum;
 
-            fprintf(stderr, "RT ran out on pkt with seqnum %i\n", runner->seqnum);
+            fprintf(stderr, "RT ran out on packet with seqnum %i\n", runner->seqnum);
             hasRTed = 1;
 
             if (stack_size(sendingStack) == 1) { // packet that closes connection RT ran out
@@ -228,7 +237,7 @@ int process_response() {
 
         pkt_t *lastPktReceived = pkt_new();
         if (pkt_decode(buf, justRead, lastPktReceived) != PKT_OK) {
-            fprintf(stderr, RED"~ Decode of response failed (packet was probably corrupted). Ignoring packet.\n\n"RESET);
+            fprintf(stderr, RED"~ Error when decoding response (packet was probably corrupted). Ignoring packet.\n\n"RESET);
             pkt_del(lastPktReceived);
             return -1; // response discarded
         }
@@ -252,11 +261,12 @@ int process_response() {
             }
 
             int amountRemoved = 0;
-            pkt_t * toCheck = stack_get_pkt(sendingStack, lastSeqnumAcked);
+            pkt_t * toCheck = stack_get_pkt(sendingStack, lastSeqnumAcked-1);
             if (lastSeqnumAcked == (totalPacketsToSend % 256) || (toCheck != NULL && pkt_get_timestamp(toCheck) != 0)) {
                 amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
             }
             fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)\t\tStack size : %li" RESET "\n\n", amountRemoved, stack_size(sendingStack));
+            stack_print(sendingStack, 8);
 
             if (lastSeqnumAcked == (totalPacketsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
                 fprintf(stderr, "Last packet ACKed\n");
