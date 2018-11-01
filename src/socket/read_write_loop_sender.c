@@ -74,7 +74,9 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
     lastSeqnumAckedCounter = 0; // for fast retransmit
 
     // variables for synchronous I/O multiplexing
+/*
     uint32_t lastTimeNotInRange = 0;
+*/
     fd_set fdSet; // file descriptor set for select()
     struct timeval timeout;
     timeout.tv_sec = 0;
@@ -86,28 +88,30 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
         bufSize = 16 + MAX_PAYLOAD_SIZE; // reset
 
         if (stack_size(sendingStack) < 256 && seqnumToSend != lastSeqnumAcked && stack_get_pkt(sendingStack, seqnumToSend) != NULL && pkt_get_length(stack_get_pkt(sendingStack, seqnumToSend)) == 0) {
-            fprintf(stderr, "Wait to send last packet\n");
+            //fprintf(stderr, "Wait to send last packet\n");
         } else {
 
-            if (!isInRange(seqnumToSend) && lastTimeNotInRange == 0) {
-                fprintf(stderr, "Packet seqnum to send is not in range\n");
+/**/            if (!isInRange(seqnumToSend)/* && lastTimeNotInRange + 5 > time(NULL)*/) {
+                //fprintf(stderr, "Packet seqnum to send is not in range\n");
+/*
                 lastTimeNotInRange = (uint32_t) time(NULL);
+*/
             } else {
-
+/*
                 // avoid deadlock
                 if (lastTimeNotInRange + 5 > time(NULL)) {
                     seqnumToSend = lastSeqnumAcked;
                     fprintf(stderr, "Force avoid deadlock : seqnum to send set to last ACKed seqnum\n");
                 }
                 lastTimeNotInRange = 0;
-
+*/
                 if (receiverWindowSize == 0 && !hasRTed && !hasNACKed && !hasFastRetransmitted) {
-                    fprintf(stderr, "Receiver's window is full, not sending next packet yet\n");
+                    //fprintf(stderr, "Receiver's window is full, not sending next packet yet\n");
                 } else {
 
                     nextPktToSend = stack_get_pkt(sendingStack, seqnumToSend); // get next pkt to send
                     if (nextPktToSend == NULL) {
-                        fprintf(stderr, "Did not get next packet to send\n");
+                        //fprintf(stderr, "Did not get next packet to send\n");
                     } else {
 
                         if (pkt_get_timestamp(nextPktToSend) == 0) { // if this is a new packet to send
@@ -248,11 +252,9 @@ int process_response() {
             receiverWindowSize = pkt_get_window(lastPktReceived);
             if (lastSeqnumAcked == pkt_get_seqnum(lastPktReceived)) {
                 lastSeqnumAckedCounter++;
-                fprintf(stderr, "lastSeqnumAckedCounter++ = %i\n", lastSeqnumAckedCounter);
                 if (lastSeqnumAckedCounter == 2) { // same ACK received 3 times
                     seqnumToSend = lastSeqnumAcked; // fast retransmit
 
-                    fprintf(stderr, "hasFastRetransmitted\n");
                     hasFastRetransmitted = 1;
                 }
             } else {
@@ -266,7 +268,6 @@ int process_response() {
                 amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
             }
             fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)\t\tStack size : %li" RESET "\n\n", amountRemoved, stack_size(sendingStack));
-            stack_print(sendingStack, 8);
 
             if (lastSeqnumAcked == (totalPacketsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
                 fprintf(stderr, "Last packet ACKed\n");
@@ -298,6 +299,10 @@ int process_response() {
 
     } else { // justRead == 0
         fprintf(stderr, "Nothing received but something expected\n");
+    }
+
+    if (hasFastRetransmitted) {
+        fprintf(stderr, "Fast retransmit for packet %i\n", lastSeqnumAcked);
     }
 
     return EXIT_SUCCESS;
