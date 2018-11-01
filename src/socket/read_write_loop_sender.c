@@ -251,8 +251,11 @@ int process_response() {
                 lastSeqnumAcked = pkt_get_seqnum(lastPktReceived);
             }
 
-            // TODO due to jitter, has to check if seqnum has not already been acked in the window !!! otherwise, stack will be emptied in 3 sec, man ! no good
-            int amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
+            int amountRemoved = 0;
+            pkt_t * toCheck = stack_get_pkt(sendingStack, lastSeqnumAcked);
+            if (lastSeqnumAcked == (totalPacketsToSend % 256) || (toCheck != NULL && pkt_get_timestamp(toCheck) != 0)) {
+                amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
+            }
             fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)\t\tStack size : %li" RESET "\n\n", amountRemoved, stack_size(sendingStack));
 
             if (lastSeqnumAcked == (totalPacketsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
