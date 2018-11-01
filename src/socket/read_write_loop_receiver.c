@@ -52,22 +52,27 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp, uint8_t seqnu
     pkt_status_code encodeResult = pkt_encode(packet, ackBuffer, (size_t *) &written);
     if (encodeResult == E_NOMEM) {
         fprintf(stderr, "Unable to encode the (N)ACK with seqnum %i\n", seqnum);
+
         free(ackBuffer);
         pkt_del(packet);
         return EXIT_FAILURE;
     }
+
     if (type == PTYPE_ACK) {
         fprintf(stderr, RED"Sent ACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum, window);
-    }else{
+    } else {
         fprintf(stderr, RED"Sent NACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum,window);
     }
+
     ssize_t wrote = send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
     if (wrote == -1) {
         fprintf(stderr, "Unable to end the (N)ACK with seqnum %i\n", expectedSeqnum);
+
         free(ackBuffer);
         pkt_del(packet);
         return EXIT_FAILURE;
     }
+
     free(ackBuffer);
     pkt_del(packet);
     return EXIT_SUCCESS;
@@ -111,7 +116,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         if (FD_ISSET(sfd, &fdSet)) {
             fprintf(stderr,"BEFORE : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
 
-            pkt_del(packet); // if packet was assigned previously
+            pkt_del(packet);
             packet = pkt_new();
             justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
@@ -131,22 +136,23 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
+
                     pkt_del(packet);
                     break;
                 }
                 if (pkt_get_tr(packet) == 1) {
                     send_reply(sfd, PTYPE_NACK, previousTimestamp, pkt_get_seqnum(packet));
+                    pkt_del(packet);
                 }
                 if (pkt_get_seqnum(packet) == expectedSeqnum) {
                     written = (int) write(outputFileDescriptor, pkt_get_payload(packet), pkt_get_length(packet));
-                    pkt_del(packet);
                     if (written == -1) {
                         perror("Ooops, received packet but can't write it...");
                     }
 
+                    pkt_del(packet);
                     incrementSeqnum();
 
-                    pkt_del(packet);
                     packet = stack_remove(receivingStack, expectedSeqnum);
 
                     while (packet != NULL) {
@@ -155,12 +161,15 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         if (written == -1) {
                             perror("Can't print packet from stack");
                         }
+
+                        pkt_del(packet);
                         incrementSeqnum();
 
                         window = (uint8_t) (MAX_WINDOW_SIZE - stack_size(receivingStack));
-                        pkt_del(packet);
                         packet = stack_remove(receivingStack, expectedSeqnum);
                     }
+
+
                     replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     if (replyResult == EXIT_FAILURE) {
                         fprintf(stderr, "Couldn't send ACK\n");
@@ -183,13 +192,14 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                     }
                 }
             } else {
-                pkt_del(packet);
-                if(decodeResult == 4) {
+                if(decodeResult == E_CRC) {
                     fprintf(stderr, YEL "Packet %i was corrupted\n" RESET, expectedSeqnum);
                 } else {
                     fprintf(stderr, "PACKET NOT OK : %i\n", decodeResult);
                 }
                 send_reply(sfd, PTYPE_NACK, previousTimestamp, expectedSeqnum);
+
+                pkt_del(packet);
             }
             print_stack(receivingStack);
             fprintf(stderr, "AFTER : \tExpect : %i\tWindow : %i\tStack : %i\n", expectedSeqnum, window,

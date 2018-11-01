@@ -32,6 +32,7 @@ void pkt_del(pkt_t *pkt) {
     }
     free(pkt->payload);
     free(pkt);
+    pkt = NULL;
 }
 
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
