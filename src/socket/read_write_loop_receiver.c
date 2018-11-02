@@ -116,7 +116,6 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         if (FD_ISSET(sfd, &fdSet)) {
             fprintf(stderr,"BEFORE : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
 
-            pkt_del(packet);
             packet = pkt_new();
             justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
