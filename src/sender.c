@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     }
     fprintf(stderr, "Packets sent successfully.\n");
 
-    fprintf(stderr, GRN"=> CLOSING CONNECTION" RESET "\n\n");
+    fprintf(stderr, "=> CLOSING CONNECTION\n\n");
 
     close(socketFileDescriptor);
 

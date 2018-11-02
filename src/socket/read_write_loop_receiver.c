@@ -50,9 +50,9 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp, uint8_t seqnu
     }
 
     if (type == PTYPE_ACK) {
-        fprintf(stderr, RED"Sent ACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum, window);
+        fprintf(stderr, "Sent ACK with\tSEQNUM : %i\tWINDOW : %i\n", expectedSeqnum, window);
     } else {
-        fprintf(stderr, RED"Sent NACK with\tSEQNUM : %i\tWINDOW : %i\n"RESET, expectedSeqnum,window);
+        fprintf(stderr, "Sent NACK with\tSEQNUM : %i\tWINDOW : %i\n", expectedSeqnum,window);
     }
 
     ssize_t wrote = send(sfd, ackBuffer, (size_t) written, MSG_CONFIRM);
@@ -115,12 +115,15 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
 
             fprintf(stderr,"BEFORE : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
 
+            if (packet != NULL) {
+                pkt_del(packet);
+            }
             packet = pkt_new();
             justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
 
             previousTimestamp = pkt_get_timestamp(packet);
-            fprintf(stderr, CYN"Received %i\tTimestamp : %i\n"RESET, pkt_get_seqnum(packet), pkt_get_timestamp(packet));
+            fprintf(stderr, "Received %i\tTimestamp : %i\n", pkt_get_seqnum(packet), pkt_get_timestamp(packet));
             if (decodeResult == PKT_OK) {
                 if (
                         pkt_get_type(packet) == PTYPE_DATA &&
@@ -183,7 +186,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                         }
                     }
                 } else {
-                    fprintf(stderr, YEL"Packet %i out of sequence and not stored\n"RESET, pkt_get_seqnum(packet));
+                    fprintf(stderr, "Packet %i out of sequence and not stored\n", pkt_get_seqnum(packet));
                     replyResult = send_reply(sfd, PTYPE_ACK, previousTimestamp, expectedSeqnum);
                     if (replyResult == EXIT_FAILURE) {
                         fprintf(stderr, "Couldn't send NACK when out of sequence\n");
@@ -191,7 +194,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
                 }
             } else {
                 if(decodeResult == E_CRC) {
-                    fprintf(stderr, YEL "Packet %i was corrupted\n" RESET, expectedSeqnum);
+                    fprintf(stderr, "Packet %i was corrupted\n", expectedSeqnum);
                 } else {
                     fprintf(stderr, "PACKET NOT OK : %i\n", decodeResult);
                 }

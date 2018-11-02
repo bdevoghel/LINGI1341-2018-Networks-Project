@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 
     read_write_loop_receiver(socketFileDescriptor, receivingStack, outputFileDescriptor);
 
-    fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
+    fprintf(stderr, "=> CLOSING CONNECTION\n\n");
 
     stack_free(receivingStack);
 

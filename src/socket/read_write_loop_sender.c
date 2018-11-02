@@ -127,7 +127,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
                         }
 
                         fprintf(stderr,
-                                GRN "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tReceivers window was %i" RESET "\n\n",
+                                "=> DATA\tSeqnum : %i\tLength : %i\tTimestamp : %i\tReceivers window was %i\n\n",
                                 pkt_get_seqnum(nextPktToSend), pkt_get_length(nextPktToSend),
                                 pkt_get_timestamp(nextPktToSend), receiverWindowSize);
 
@@ -189,7 +189,7 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
             mainBreak = 0;
         }
     } // main while loop
-    fprintf(stderr, RED "~ Connection termination ACKed.\n  %i packets were sent for this file of %i packets." RESET "\n\n", packetsSentCount,
+    fprintf(stderr, "~ Connection termination ACKed.\n  %i packets were sent for this file of %i packets.\n\n", packetsSentCount,
             totalPacketsToSend);
 
     return EXIT_SUCCESS;
@@ -240,13 +240,13 @@ int process_response() {
 
         pkt_t *lastPktReceived = pkt_new();
         if (pkt_decode(buf, justRead, lastPktReceived) != PKT_OK) {
-            fprintf(stderr, RED"~ Error when decoding response (packet was probably corrupted). Ignoring packet.\n\n"RESET);
+            fprintf(stderr, "~ Error when decoding response (packet was probably corrupted). Ignoring packet.\n\n");
             pkt_del(lastPktReceived);
             return -1; // response discarded
         }
 
         if (pkt_get_type(lastPktReceived) == PTYPE_ACK) {
-            fprintf(stderr, RED "~ ACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i\n" RESET, pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
+            fprintf(stderr, "~ ACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i\n", pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
             if (lastSeqnumAcked == pkt_get_seqnum(lastPktReceived)) {
@@ -266,7 +266,7 @@ int process_response() {
             if (lastSeqnumAcked == (totalPacketsToSend % 256) || (toCheck != NULL && pkt_get_timestamp(toCheck) != 0)) {
                 amountRemoved = stack_remove_acked(sendingStack, lastSeqnumAcked); // remove all nodes prior to [lastSeqnumAcked] (not included) from [sendingStack]
             }
-            fprintf(stderr, RED "~ Cummulative ACK for %i packet(s)\t\tStack size : %li" RESET "\n\n", amountRemoved, stack_size(sendingStack));
+            fprintf(stderr, "~ Cummulative ACK for %i packet(s)\t\tStack size : %li\n\n", amountRemoved, stack_size(sendingStack));
 
             if (lastSeqnumAcked == (totalPacketsToSend % 256) && stack_size(sendingStack) == 1) { // ACKed terminating connection packet
                 fprintf(stderr, "Last packet ACKed\n");
@@ -275,7 +275,7 @@ int process_response() {
             }
 
         } else if (pkt_get_type(lastPktReceived) == PTYPE_NACK) {
-            fprintf(stderr, BLU "~ NACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i" RESET "\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
+            fprintf(stderr, "~ NACK\tSeqnum : %i\tTimestamp : %i\tWindow : %i\n\n", pkt_get_seqnum(lastPktReceived), pkt_get_timestamp(lastPktReceived), pkt_get_window(lastPktReceived));
 
             receiverWindowSize = pkt_get_window(lastPktReceived);
             seqnumToSend = pkt_get_seqnum(lastPktReceived);
