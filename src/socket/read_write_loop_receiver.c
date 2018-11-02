@@ -13,15 +13,6 @@
 #include "read_write_loop_receiver.h"
 #include "../packet/packet.h" // MAX_PAYLOAD_SIZE
 
-#define RED   "\x1B[31m"
-#define GRN   "\x1B[32m"
-#define YEL   "\x1B[33m"
-#define BLU   "\x1B[34m"
-#define MAG   "\x1B[35m"
-#define CYN   "\x1B[36m"
-#define WHT   "\x1B[37m"
-#define RESET "\x1B[0m"
-
 uint8_t expectedSeqnum;
 uint8_t window;
 
@@ -85,7 +76,6 @@ int send_reply(int sfd, ptypes_t type, uint32_t previousTimestamp, uint8_t seqnu
  * @return: as soon as stdin signals EOF
  */
 void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDescriptor) {
-    // TODO : Jitter does some weird things with the stack... Packets are not always inserted in the right order into the stack
     char sfdBuffer[MAX_PAYLOAD_SIZE+16];
 
     fd_set fdSet;
@@ -104,6 +94,9 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
     int replyResult;
     uint32_t previousTimestamp;
 
+    struct timespec start, end;
+    int trStarted = 0;
+
     while (1) {
         // Reset everything for new iteration of the loop
         memset(sfdBuffer, 0, MAX_PAYLOAD_SIZE+16);
@@ -114,9 +107,13 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         select(sfd + 1, &fdSet, NULL, NULL, &timeout);
 
         if (FD_ISSET(sfd, &fdSet)) {
+            if (trStarted == 0) {
+                clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+                trStarted = 1;
+            }
+
             fprintf(stderr,"BEFORE : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);
 
-            pkt_del(packet);
             packet = pkt_new();
             justRead = (int) read(sfd, sfdBuffer, MAX_PAYLOAD_SIZE + 16);
             decodeResult = pkt_decode(sfdBuffer, (const size_t) justRead, packet);
@@ -209,6 +206,10 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
         }
 
     }
-    fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
 
+    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+    uint64_t delta_us = (uint64_t) (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+    double deltaT = ((double) delta_us)/1000000.0;
+
+    fprintf(stderr, "\nPackets received successfully in %f seconds.\n", deltaT);
 }

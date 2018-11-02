@@ -29,8 +29,6 @@ int port = -1;
 char *fileToRead = NULL;
 int socketFileDescriptor;
 
-int fOption = 0;
-
 uint8_t nextSeqnum;
 stack_t *sendingStack;
 
@@ -156,6 +154,8 @@ int main(int argc, char *argv[]) {
 }
 
 int process_options(int argc,char *argv[]) {
+    int fOption = 0;
+
     int opt;
     while((opt = getopt(argc, argv, "f:")) != -1) {
         switch(opt) {
@@ -164,7 +164,7 @@ int process_options(int argc,char *argv[]) {
                 fileToRead = optarg;
                 break;
             default : // unknown option
-                return ooops("Unknown argument. Usage : \"receiver [-f X] hostname port\"");
+                return ooops("Unknown argument. Usage : \"sender [-f X] hostname port\"");
         }
     }
 
@@ -184,13 +184,13 @@ int process_options(int argc,char *argv[]) {
             port = atoi(argv[i]); // NOLINT
             portSet = 1;
         } else {
-            return ooops("Unknown argument. Usage : \"receiver [-f X] hostname port\"");
+            return ooops("Unknown argument. Usage : \"sender [-f X] hostname port\"");
         }
         i++;
     }
 
     if(!hostnameSet || !portSet) {
-        fprintf(stderr, "%i option(s) read. Usage : \"sender hostname port [-f X]\"\n", (1 + fOption*2 + hostnameSet + portSet));
+        fprintf(stderr, "%i option(s) read. Usage : \"sender [-f X] hostname port\"\n", (1 + fOption*2 + hostnameSet + portSet));
         return EXIT_FAILURE;
     }
 
