@@ -155,6 +155,7 @@ void node_free(node_t *node){
         return;
     }
     free(node);
+    node = NULL;
 }
 
 int is_in_stack(stack_t *stack, uint8_t seqnum) {

@@ -30,7 +30,9 @@ void pkt_del(pkt_t *pkt) {
     if(pkt == NULL) {
         return;
     }
-    free(pkt->payload);
+    if(pkt->payload != NULL) {
+        free(pkt->payload);
+    }
     free(pkt);
     pkt = NULL;
 }
