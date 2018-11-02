@@ -42,7 +42,7 @@ const char * real_address(const char *address, struct sockaddr_in6 *rval) {
     struct addrinfo *res;
     int info = getaddrinfo(address, NULL, &hints, &res);
     if (info != 0) {
-        perror("Real_address, getaddrinfo : ");
+        perror("Real_address, getaddrinfo");
         return gai_strerror(info);
     }
 

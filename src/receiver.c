@@ -105,9 +105,9 @@ int main(int argc, char *argv[]) {
 
     read_write_loop_receiver(socketFileDescriptor, receivingStack, outputFileDescriptor);
 
-    stack_free(receivingStack);
+    fprintf(stderr, GRN "=> CLOSING CONNECTION" RESET "\n\n");
 
-    fprintf(stderr, "Packets received successfully.\n");
+    stack_free(receivingStack);
 
     close(socketFileDescriptor);
     close(outputFileDescriptor);
@@ -117,10 +117,6 @@ int main(int argc, char *argv[]) {
 
 
 int process_options(int argc,char *argv[]) {
-    /*
-     * Reading arguments
-     */
-
     int fOption = 0;
 
     int opt;
@@ -131,8 +127,7 @@ int process_options(int argc,char *argv[]) {
                 fileToWrite = optarg;
                 break;
             default : // unknown option
-                fprintf(stderr, "Unknown argument detected : %s\n", optarg);
-                return EXIT_FAILURE;
+                return ooops("Unknown argument. Usage : \"receiver [-f X] hostname port\"");
         }
     }
 
@@ -140,28 +135,33 @@ int process_options(int argc,char *argv[]) {
     int hostnameSet = 0;
     int portSet = 0;
     while(i < argc) {
-        if(!strcmp(argv[i], "-f")) {
+        if(strcmp(argv[i], "-f") == 0) {
             i++;
-        } else if(!hostnameSet) {
+            if(!fOption) {
+                ooops("You need to put the -f option before the other arguments. Reading from stdin.");
+            }
+        } else if(hostnameSet == 0) {
             hostname = argv[i];
             hostnameSet = 1;
-        } else {
+        } else if(portSet == 0) {
             port = atoi(argv[i]); // NOLINT
             portSet = 1;
+        } else {
+            return ooops("Unknown argument. Usage : \"receiver [-f X] hostname port\"");
         }
         i++;
     }
 
-    if(argc > (3 + fOption*2) || !hostnameSet || !portSet) {
+    if(!hostnameSet || !portSet) {
         fprintf(stderr, "%i option(s) read. Usage : \"receiver [-f X] hostname port\"\n", (1 + fOption*2 + hostnameSet + portSet));
         return EXIT_FAILURE;
     }
 
-    if(!fOption) {
-        fileToWrite = NULL;
-    }
-
-    fprintf(stderr, "Options processed.\n   Hostname      : %s\n   Port          : %i\n   File to write : %s\n", hostname, port, fileToWrite);
+    fprintf(stderr, "Options processed.\n"
+                    "   Hostname      : %s\n"
+                    "   Port          : %i\n"
+                    "   File to write : %s\n",
+                    hostname, port, fileToWrite);
     return EXIT_SUCCESS;
 }
 
