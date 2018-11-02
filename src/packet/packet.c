@@ -134,7 +134,6 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     if(statusCode != PKT_OK) {
         return statusCode;
     }
-    // TODO calculate CRC1 with tr set to 0 !?
     uint32_t crc1Calculated = (uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) data + 0, (uInt) sizeof(char) * 8);
     if(pkt_get_crc1(pkt) != crc1Calculated) {
         return E_CRC;
@@ -191,7 +190,6 @@ pkt_status_code pkt_encode(pkt_t *pkt, char *buf, size_t *len) {
     uint32_t pkt_timestamp = pkt_get_timestamp(pkt);
     memcpy(buf+4, &pkt_timestamp, sizeof(uint32_t));
 
-    // TODO calculate CRC1 with tr set to 0 !?
     uint32_t pktn_crc1 = htonl((uint32_t) crc32(crc32(0L, Z_NULL, 0), (Bytef *) buf + 0, (uInt) sizeof(char) * 8));
     //uint32_t pktn_crc1 = htonl(pkt_get_crc1(pkt));
     statusCode = pkt_set_crc1(pkt, ntohl(pktn_crc1));

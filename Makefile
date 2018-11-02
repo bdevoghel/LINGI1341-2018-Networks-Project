@@ -68,6 +68,3 @@ clean:
 	@cd src/packet && $(MAKE) -s clean
 	@cd src/stack && $(MAKE) -s clean
 	@cd tests && $(MAKE) -s clean
-
-
-# TODO test INTENSIVELY with : valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./main_to_execute

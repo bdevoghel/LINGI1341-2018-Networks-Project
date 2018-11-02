@@ -47,15 +47,15 @@ int ooops(char *message) {
 
 
 /**
- * TODO : description
- * @param argc
- * @param argv
- * @return
+ * Processes arguments and options received with main
+ * @param argc of main
+ * @param argv of main
+ * @return : 0 if options processed successfully, 1 if something went wrong
  */
 int process_options(int argc,char *argv[]);
 
 /**
- * TODO : description
+ * Resolves the hostname & creates a socket
  */
 int init_connection();
 
@@ -188,5 +188,5 @@ int init_connection() {
         return ooops("Error while waiting for the client");
     }
 
-    return EXIT_SUCCESS; // TODO check value to return
+    return EXIT_SUCCESS;
 }

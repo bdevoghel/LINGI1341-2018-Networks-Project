@@ -110,6 +110,7 @@ void read_write_loop_receiver(int sfd, stack_t *receivingStack, int outputFileDe
             if (trStarted == 0) {
                 clock_gettime(CLOCK_MONOTONIC_RAW, &start);
                 trStarted = 1;
+                fprintf(stderr,"Starting transmission.\n");
             }
 
             fprintf(stderr,"BEFORE : \tExpect : %i\tWindow : %i\n",expectedSeqnum,window);

@@ -74,9 +74,9 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
     lastSeqnumAckedCounter = 0; // for fast retransmit
 
     // variables for synchronous I/O multiplexing
-/*
-    uint32_t lastTimeNotInRange = 0;
-*/
+
+//  uint32_t lastTimeNotInRange = 0;
+
     fd_set fdSet; // file descriptor set for select()
     struct timeval timeout;
     timeout.tv_sec = 0;
@@ -93,9 +93,8 @@ int read_write_loop_sender(const int socketFileDescriptor, stack_t *stack) {
 
 /**/            if (!isInRange(seqnumToSend)/* && lastTimeNotInRange + 5 > time(NULL)*/) {
                 //fprintf(stderr, "Packet seqnum to send is not in range\n");
-/*
-                lastTimeNotInRange = (uint32_t) time(NULL);
-*/
+
+//              lastTimeNotInRange = (uint32_t) time(NULL);
             } else {
 /*
                 // avoid deadlock
