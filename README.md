@@ -1,5 +1,4 @@
-# project1_vandeWalle_deVoghel
+# LINGI1341-2018-Networks-Project
+LINGI1341 course project : implementing TCP extension over UDP
 
-LINGI1341 : projet TRTP
-
-Rapport peut être visionné ici : https://www.overleaf.com/read/zkdtdnjgwmph
+See [report](LINGI1341-Rapport_Projet_TRTP.pdf)
